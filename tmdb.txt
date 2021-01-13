@@ -1,0 +1,83 @@
+API Key (v3 auth)
+  51e27be0d3b2745ecf2d11a387d3398b
+
+Example API Request
+  https://api.themoviedb.org/3/movie/550?api_key=51e27be0d3b2745ecf2d11a387d3398b
+
+API Read Access Token (v4 auth)
+  eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MWUyN2JlMGQzYjI3NDVlY2YyZDExYTM4N2QzMzk4YiIsInN1YiI6IjVmZmM4ZjJjZmFiM2ZhMDAzYzRmNGVkYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.1qLCKZgvPot2b_yEBTGAfqnoQXsVeLfvEwt88HHh_KU
+
+
+To build an image URL, you will need 3 pieces of data. The base_url, size and file_path. 
+Simply combine them all and you will have a fully qualified URL. Here’s an example URL:
+  https://image.tmdb.org/t/p/w500/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg
+
+
+npm i date-fns
+npm i --save-dev eslint
+npm i --save-dev eslint-config-airbnb eslint-config-prettier eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-react eslint-plugin-react-hooks babel-eslint prettier
+npm i --save-dev husky lint-staged
+npm i --save-dev vercel
+
+"scripts" : {
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix --color",
+    "format": "prettier --write ./src/**/*.js"
+}
+"husky": {
+  "hooks": {
+    "pre-commit": "lint-staged"
+  }
+},
+"lint-staged" : {
+  "*.js": [
+    "npm run lint:fix"
+  ]
+},
+
+.prettierrc
+{
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "endOfLine": "lf",
+  "printWidth": 120
+}
+
+.eslintrc.json
+{
+  "extends": [
+    "airbnb",
+    "airbnb/hooks",
+    "eslint-config-prettier",
+    "prettier/react"
+  ],
+  "plugins": ["react"],
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "jest": true
+  },
+  "rules": {
+    "curly": ["error"],
+    "max-depth": ["warn", 4],
+    "id-length": ["warn", { "exceptions": ["i", "j"], "min": 2 }],
+    "no-lonely-if": ["error"],
+    "no-plusplus": ["error", {"allowForLoopAfterthoughts": true}],
+    "no-restricted-syntax": "off",
+    "class-methods-use-this": "off",
+    "jsx-a11y/href-no-hash": ["off"],
+    "jsx-a11y/anchor-is-valid": ["off"],
+    "jsx-a11y/label-has-associated-control": [ "error", {
+      "assert": "either"
+    }],
+    "react/state-in-constructor": ["off"],
+    "react/jsx-props-no-spreading": ["off"],
+    "react/static-property-placement": "off"
+  },
+  "settings": {
+    "react": {
+      "pragma": "React",
+      "version": "detect"
+    }
+  }
+}
