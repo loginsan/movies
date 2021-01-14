@@ -1,10 +1,7 @@
 import React from 'react';
-import TMDBService from './services/TMDBService';
 import './App.css';
 
 function App() {
-  const tmdbService = new TMDBService();
-  tmdbService.getMovies('return');
   return (
     <div className="App">
       <header className="App-header">

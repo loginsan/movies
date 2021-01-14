@@ -7,7 +7,7 @@ class TMDBService {
 
   async getResource(url, paramStr = '') {
     const path = `${this.apiBase}${url}?api_key=${this.apiLK}${this.apiRK}${paramStr}`;
-    console.log(path);
+    // console.log(path);
 
     const res = await fetch(path);
 
@@ -16,17 +16,11 @@ class TMDBService {
     }
 
     const body = await res.json();
-    console.log('1');
     return body;
   }
 
   getMovies(query) {
-    this.getResource(`/search/movie`, `&query=${query}`)
-      .then((res) => {
-        console.log('2');
-        console.log(res);
-      })
-      .catch((err) => console.error(err));
+    return this.getResource(`/search/movie`, `&query=${query}`)
   }
 }
 
