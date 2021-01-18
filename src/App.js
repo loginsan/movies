@@ -24,11 +24,10 @@ class App extends Component {
           About Movies App: &quot;This product uses the <a href="https://www.themoviedb.org/">TMDb</a> API but is not
           endorsed or certified by TMDb.&quot;
         </p>
-        <SearchResults />
         <Tabs defaultActiveKey="1" onChange={callback} className="Tabs">
           <TabPane tab="Search" key="1">
             <Input placeholder="Type to search…" />
-            123
+            <SearchResults />
           </TabPane>
           <TabPane tab="Rated" key="2">
             Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}
