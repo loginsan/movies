@@ -14,22 +14,15 @@ class TMDBService {
 
     if (!res.ok) {
       throw new Error(`Could not fetch ${url}, received ${res.status}`);
-    }
+    };
 
-    return res.json();
-  }
-
-  async getRs(url, paramStr = '') {
-    const res = await fetch(`${this.apiBase}${url}?api_key=${this.apiKey}${paramStr}`);
-    if (!res.ok) {
-      throw new Error(`Could not fetch ${url}, received ${res.status}`);
-    }
     const body = await res.json();
+
     return body;
   }
 
-  getMov(query) {
-    return this.getRs(`/search/movie`, `&query=${query}`);
+  getMovies(query) {
+    return this.getResource(`/search/movie`, `&query=${query}`);
   }
 }
 
