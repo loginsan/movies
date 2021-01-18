@@ -1,10 +1,24 @@
 .App {
   text-align: center;
+  background-color: #FFFFFF;
+  max-width: 1010px;
+  margin: 0 auto;
+  box-sizing: content-box;
+  padding: 18px 32px;
 }
 
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+}
+
+.ant-tabs-nav {
+  align-self: center;
+}
+
+.attribution {
+  font-size: small;
+  color: #EEEEEE;
 }
 
 @media (prefers-reduced-motion: no-preference) {
