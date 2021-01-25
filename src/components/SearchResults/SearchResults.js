@@ -1,8 +1,6 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { Card, Col, Row } from 'antd';
 import TMDBService from '../../services/TMDBService';
-
-
 
 const buildCard = (data) => {
   const parsed = {
@@ -22,26 +20,40 @@ const buildCard = (data) => {
   };
   
   return (
-    <Col span={12} key={`m${parsed.id}`}>
+    <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${parsed.id}`}>
       <Card title="" bordered={false}>
-        { parsed.toString() }
+        <h5>{parsed.title}</h5>
+        <span className="movie--release-date">{parsed.releaseDate}</span><br />
+        <span className="movie--genres">{parsed.genres}</span><br />
+        <p className="movie--overview">{parsed.overview}</p>
+        <div className="movie--popularity">{parsed.popularity} / {parsed.voteAverage}</div>
       </Card>
-    </Col>);
+    </Col>
+  );
 }
 
-const SearchResults = () => {
-  const searchResultsList = [];
-  const mdb = new TMDBService();
+class SearchResults extends Component {
+  state = {
+    movies: [],
+  }
 
-  mdb.getMovies('future').then((body) => {
-    body.results.forEach((element) => {
-      searchResultsList.push( buildCard(element) );
-    });
-  });
+  componentDidMount() {
+    const mdb = new TMDBService();
+      mdb.getMovies('future')
+      .then((body) => Array.from(body.results))
+      .then((list) => {
+        this.setState({
+          movies: list,
+        });
+      });
+  }
 
-  return (<Row gutter={16}>
-    {searchResultsList}
-  </Row>)
+  render() {
+    const { movies } = this.state;
+    return (<Row gutter={[36, 36]}>
+      { movies.map(elem => buildCard(elem)) }
+    </Row>)
+  }
 }
 
 export default SearchResults;
