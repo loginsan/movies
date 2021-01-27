@@ -26,8 +26,12 @@ class App extends Component {
         </p>
         <Tabs defaultActiveKey="1" onChange={callback} className="Tabs">
           <TabPane tab="Search" key="1">
-            <Input placeholder="Type to search…" />
-            <SearchResults />
+            <form className="search-form" action="/">
+              <Input placeholder="Type to search…" className="search-field" />
+            </form>
+            <section className="search-results--wrap">
+              <SearchResults />
+            </section>
           </TabPane>
           <TabPane tab="Rated" key="2">
             Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}

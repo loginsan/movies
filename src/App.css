@@ -4,7 +4,8 @@
   max-width: 1010px;
   margin: 0 auto;
   box-sizing: content-box;
-  padding: 18px 32px;
+  padding: 18px 0;
+  font-family: 'Inter', sans-serif;
 }
 
 .App-logo {
@@ -19,6 +20,104 @@
 .attribution {
   font-size: small;
   color: #EEEEEE;
+}
+
+.search-form {
+  margin: 32px;
+}
+
+.search-results--wrap {
+  padding: 0 36px;
+}
+
+.ant-card-body {
+  padding: 0 24px 0 0
+}
+
+.movie-card {
+  position: relative;
+  height: 281px;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .15);
+  text-align: left;
+  overflow: hidden;
+}
+
+.movies-list {
+  display: flex;
+  justify-content: space-around;
+}
+
+.movie--title {
+  margin-top: 12px;
+  margin-bottom: 0;
+  margin-left: 203px;
+  margin-right: 40px;
+  font-size: 20px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.movie--release-date {
+  display: block;
+  margin-top: 7px;
+  margin-left: 203px;
+  font-size: 12px;
+  line-height: 22px;
+  color: #827E7E;
+}
+.movie--genres {
+  list-style: none;
+  margin-top: 7px;
+  margin-bottom: 0;
+  margin-left: 203px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.65);
+}
+.movie--genres li {
+  display: inline-block;
+  margin-right: 8px;
+  background: #FAFAFA;
+  border: 1px solid #D9D9D9;
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+.movie--overview, .movie--vote-average {
+  font-size: 12px;
+  line-height: 22px;
+  color: #000000;
+}
+.movie--overview {
+  margin-top: 7px;
+  margin-left: 203px;
+  margin-bottom: 49px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie--vote-average {
+  position: absolute;
+  z-index: 1;
+  width: 30px;
+  right: 9px;
+  top: 12px;
+  text-align: center;
+  border-radius: 50%;
+  border: 2px solid #E9D100;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie--poster {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  top: 0;
+  max-width: 185px;
 }
 
 @media (prefers-reduced-motion: no-preference) {

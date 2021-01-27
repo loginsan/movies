@@ -14,7 +14,7 @@ class TMDBService {
 
     if (!res.ok) {
       throw new Error(`Could not fetch ${url}, received ${res.status}`);
-    };
+    }
 
     const body = await res.json();
 
@@ -23,6 +23,14 @@ class TMDBService {
 
   getMovies(query) {
     return this.getResource(`/search/movie`, `&query=${query}`);
+  }
+
+  getConfiguration() {
+    return this.getResource(`/configuration`);
+  }
+
+  getGenresList() {
+    return this.getResource('/genre/movie/list');
   }
 }
 
