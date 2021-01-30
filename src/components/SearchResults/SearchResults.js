@@ -1,80 +1,65 @@
 import React, { Component } from 'react';
+import { PropTypes}  from 'prop-types';
 import { Card, Col, Row } from 'antd';
-import { format } from 'date-fns';
-import TMDBService from '../../services/TMDBService';
+import { format, isValid } from 'date-fns';
 
+
+function truncate(n){
+    if (this.length <= n) { return this; }
+    const short = this.substr(0, n-1);
+    return `${short.substr(0, short.lastIndexOf(' '))}…`;
+}
 
 class SearchResults extends Component {
-  state = {
-    movies: [],
-    genres: [],
-  };
-
-  componentDidMount() {
-    const mdb = new TMDBService();
-    mdb
-      .getMovies('future')
-      .then((body) => Array.from(body.results))
-      .then((list) => {
-        this.setState({
-          movies: list,
-        });
-      });
-    mdb.getGenresList().then((res) => {
-      this.setState({
-        genres: res.genres,
-      });
-    });
-  }
-
+  
   nameGenre = (id) => {
-    const { genres } = this.state;
-    const gobj = genres.find((elem) => elem.id === id);
+    const { genres } = this.props;
+    const gobj = genres.find(elem => elem.id === id);
     return gobj ? gobj.name : '';
   }
 
   buildImg = (pp, bp) => {
-    const noposter =
-      'https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg';
+    const noposter = './noposter.svg';
     return pp || bp ? `https://image.tmdb.org/t/p/w185${pp || bp}` : noposter;
   }
 
   buildCard = (data) => {
-    const parsed = {
-      backdropPath: data.backdrop_path,
-      genres: data.genre_ids.map((elem) => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
-      id: data.id,
-      originalLanguage: data.original_language,
-      originalTitle: data.original_title,
-      overview: data.overview,
-      popularity: data.popularity,
-      posterPath: data.poster_path,
-      releaseDate: format(new Date(data.release_date), 'LLLL d, yyy'),
-      title: data.title,
-      video: data.video,
-      voteAverage: data.vote_average,
-      voteCount: data.vote_count,
-    };
-
+    const rdate = isValid(new Date(data.release_date)) ? new Date(data.release_date) : Date.now();
+      const movie = {
+        backdropPath: data.backdrop_path,
+        genres: data.genre_ids.map(elem => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
+        id: data.id,
+        originalLanguage: data.original_language,
+        originalTitle: data.original_title,
+        overview: data.overview,
+        popularity: data.popularity,
+        posterPath: data.poster_path,
+        releaseDate: format(rdate, 'LLLL d, yyy'),
+        title: data.title,
+        video: data.video,
+        voteAverage: data.vote_average,
+        voteCount: data.vote_count,
+      };
+    
     return (
-      <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${parsed.id}`}>
+      <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${movie.id}`}>
         <Card title="" bordered={false} className="movie-card">
           <img
             className="movie--poster"
-            alt={parsed.title}
-            title={`${parsed.posterPath} __ ${parsed.backdropPath}`}
-            src={this.buildImg(parsed.posterPath, parsed.backdropPath)}
+            alt={movie.title}
+            title={`${movie.posterPath} __ ${movie.backdropPath}`}
+            src={this.buildImg(movie.posterPath, movie.backdropPath)}
           />
-          <h5 className="movie--title" title={parsed.title}>
-            {parsed.title}
+          <h5 className="movie--title" title={movie.title}>
+            {movie.title}
           </h5>
-          <span className="movie--release-date">{parsed.releaseDate}</span>
-          <ul className="movie--genres">{parsed.genres}</ul>
-          <div className="movie--overview" title={parsed.overview}>
-            <p>{parsed.overview}</p>
+          <span className="movie--release-date">{movie.releaseDate}</span>
+          <ul className="movie--genres">{movie.genres}</ul>
+          <div className="movie--overview" title={movie.overview}>
+            <p>{ truncate.call(movie.overview, 150) }</p>
           </div>
-          <div className="movie--vote-average" title={parsed.id}>
-            {parsed.voteAverage}
+          <div className="movie--vote-average" title={movie.id}>
+            {movie.voteAverage}
           </div>
         </Card>
       </Col>
@@ -82,13 +67,23 @@ class SearchResults extends Component {
   };
 
   render() {
-    const { movies } = this.state;
+    const { items } = this.props;
     return (
       <Row gutter={[36, 36]} justify="space-around" className="movies-list">
-        {movies.map((elem) => this.buildCard(elem))}
+        { items.map(elem => this.buildCard(elem)) }
       </Row>
     );
   }
 }
+
+SearchResults.defaultProps = {
+  items: [],
+  genres: [],
+};
+
+SearchResults.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object),
+  genres: PropTypes.arrayOf(PropTypes.object),
+};
 
 export default SearchResults;

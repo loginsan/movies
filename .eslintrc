@@ -69,6 +69,14 @@
         ]
       }
     ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": false,
+        "optionalDependencies": false,
+        "peerDependencies": false
+      }
+    ],
     "react/static-property-placement": "off"
   },
   "settings": {

@@ -3,6 +3,7 @@ import { Tabs, Input } from 'antd';
 import SearchResults from './components/SearchResults';
 import 'antd/dist/antd.css';
 import './App.css';
+import TMDBService from './services/TMDBService';
 
 
 function callback(key) {
@@ -10,13 +11,29 @@ function callback(key) {
 }
 
 class App extends Component {
+  
   state = {
     activeTab: 'Search',
+    genres: [],
+    movies: [],
+  };
+
+  componentDidMount() {
+    const mdb = new TMDBService();
+
+    Promise.all([mdb.getMovies('return'), mdb.getGenresList()])
+      .then( ([mres, gres]) => [Array.from(mres.results), gres.genres] )
+      .then( ([movies, genres]) => {
+        this.setState({
+          genres,
+          movies,
+        });
+      });
   }
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab } = this.state;
+    const { activeTab, genres, movies } = this.state;
 
     return (
       <div className="App">
@@ -30,7 +47,7 @@ class App extends Component {
               <Input placeholder="Type to search…" className="search-field" />
             </form>
             <section className="search-results--wrap">
-              <SearchResults />
+              <SearchResults genres={genres} items={movies} />
             </section>
           </TabPane>
           <TabPane tab="Rated" key="2">
