@@ -4,9 +4,11 @@ import { Card, Col, Row } from 'antd';
 import { format, isValid } from 'date-fns';
 
 
-function truncate(n){
-    if (this.length <= n) { return this; }
-    const short = this.substr(0, n-1);
+function truncate(limit){
+    if (this.length <= limit) {
+      return this;
+    }
+    const short = this.substr(0, limit - 1);
     return `${short.substr(0, short.lastIndexOf(' '))}…`;
 }
 

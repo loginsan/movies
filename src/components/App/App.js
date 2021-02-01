@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import { Tabs, Input } from 'antd';
-import SearchResults from './components/SearchResults';
+import { Tabs, Input, Spin, Alert } from 'antd';
+import SearchResults from '../SearchResults';
 import 'antd/dist/antd.css';
 import './App.css';
-import TMDBService from './services/TMDBService';
+import TMDBService from '../../services/TMDBService';
 
 
 function callback(key) {
@@ -14,6 +14,8 @@ class App extends Component {
   
   state = {
     activeTab: 'Search',
+    isLoading: true,
+    error: false,
     genres: [],
     movies: [],
   };
@@ -22,18 +24,34 @@ class App extends Component {
     const mdb = new TMDBService();
 
     Promise.all([mdb.getMovies('return'), mdb.getGenresList()])
-      .then( ([mres, gres]) => [Array.from(mres.results), gres.genres] )
-      .then( ([movies, genres]) => {
+      .then(([mres, gres]) => [Array.from(mres.results), gres.genres])
+      .then(([movies, genres]) => {
         this.setState({
+          isLoading: false,
           genres,
           movies,
+        });
+      })
+      .catch((err) => {
+        this.setState({
+          isLoading: false,
+          error: err.message,
         });
       });
   }
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, genres, movies } = this.state;
+    const { activeTab, isLoading, error, genres, movies } = this.state;
+
+    const dataOrNot = error ? (
+      <Alert message={`Error: ${error}`} type="error" showIcon />
+    ) : (
+      <SearchResults genres={genres} items={movies} />
+    );
+    const moviesBox = isLoading ? (
+      <Spin size="large" />
+    ) : dataOrNot;
 
     return (
       <div className="App">
@@ -47,7 +65,7 @@ class App extends Component {
               <Input placeholder="Type to search…" className="search-field" />
             </form>
             <section className="search-results--wrap">
-              <SearchResults genres={genres} items={movies} />
+              { moviesBox }
             </section>
           </TabPane>
           <TabPane tab="Rated" key="2">

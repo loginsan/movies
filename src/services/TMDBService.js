@@ -1,37 +1,36 @@
-class TMDBService {
-  apiBase = 'https://api.themoviedb.org/3';
+
+export default class TMDBService {
+  
+  base = 'https://api.themoviedb.org/3';
 
   apiLK = '51e27be0d3b2745e';
 
   apiRK = 'cf2d11a387d3398b';
 
-  apiKey = '51e27be0d3b2745ecf2d11a387d3398b';
+  key = `${this.apiLK}${this.apiRK}`;
 
-  async getResource(url, paramStr = '') {
-    const path = `${this.apiBase}${url}?api_key=${this.apiLK}${this.apiRK}${paramStr}`;
-
+ 
+  async ask(url, paramStr = '') {
+    
+    const path = `${this.base}${url}?api_key=${this.key}${paramStr}`;
     const res = await fetch(path);
 
     if (!res.ok) {
       throw new Error(`Could not fetch ${url}, received ${res.status}`);
     }
-
     const body = await res.json();
-
     return body;
   }
 
   getMovies(query) {
-    return this.getResource(`/search/movie`, `&query=${query}`);
+    return this.ask(`/search/movie`, `&query=${query}`);
   }
 
   getConfiguration() {
-    return this.getResource(`/configuration`);
+    return this.ask(`/configuration`);
   }
 
   getGenresList() {
-    return this.getResource('/genre/movie/list');
+    return this.ask('/genre/movies/list');
   }
 }
-
-export default TMDBService;
