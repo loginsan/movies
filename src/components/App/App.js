@@ -25,8 +25,6 @@ class App extends Component {
     activeTab: 'Search',
     isLoading: true,
     error: false,
-    searchValue: '',
-    founded: 0,
     genres: [],
     movies: [],
   };
@@ -43,7 +41,7 @@ class App extends Component {
         });
       })
       .catch(this.handleError);
-    this.handleSearch = debounce(this.handleSearchFunc, 100);
+    this.handleSearch = debounce(this.handleSearchFunc, 300);
   }
 
   componentDidMount() {
@@ -55,16 +53,26 @@ class App extends Component {
   };
 
   handleSearchFunc = (byWords) => {
+    if (byWords.length < 2) return;
+    this.setState({
+      isLoading: true,
+    });
     this.mdb
       .getMovies(byWords)
       .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
       .then(({ movies, founded }) => {
-        this.setState({
-          isLoading: false,
-          searchValue: byWords,
-          movies,
-          founded,
-        });
+        if (founded === 0) {
+          this.setState({
+            isLoading: false,
+            error: `Не найдено фильмов по фразе '${byWords}'`,
+          });
+        } else {
+          this.setState({
+            isLoading: false,
+            error: false,
+            movies,
+          });
+        }
       })
       .catch(this.handleError);
   };
@@ -78,13 +86,13 @@ class App extends Component {
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, isLoading, founded, error, searchValue, genres, movies } = this.state;
+    const { activeTab, isLoading, error, genres, movies } = this.state;
 
     return (
-      <div className="App" title={founded}>
+      <div className="App">
         <Tabs defaultActiveKey="1" onChange={callback} className="Tabs">
           <TabPane tab="Search" key="1">
-            <SearchField onChange={this.handleChangeSearchText} value={searchValue} />
+            <SearchField onChange={this.handleChangeSearchText} />
             <section className="search-results--wrap">
               <SearchResults items={movies} genres={genres} error={error} isLoading={isLoading} />
             </section>

@@ -2,20 +2,18 @@ import React from 'react';
 import { PropTypes}  from 'prop-types';
 import { Input } from 'antd';
 
-const SearchField = ({ onChange, value }) => (
+const SearchField = ({ onChange }) => (
   <form className="search-form" action="/">
-    <Input placeholder="Type to search…" className="search-field" value={value} onChange={(event) => onChange(event)} />
+    <Input placeholder="Type to search…" className="search-field" onChange={(event) => onChange(event)} />
   </form>
 );
 
 SearchField.defaultProps = {
   onChange: () => {},
-  value: '',
 };
 
 SearchField.propTypes = {
   onChange: PropTypes.func,
-  value: PropTypes.string,
 };
 
 export default SearchField;
