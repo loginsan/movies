@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { PropTypes}  from 'prop-types';
-import { Card, Col, Row } from 'antd';
+import { Card, Col, Row, Rate, Spin, Alert } from 'antd';
 import { format, isValid } from 'date-fns';
 
 
@@ -36,6 +36,7 @@ class SearchResults extends Component {
         overview: data.overview,
         popularity: data.popularity,
         posterPath: data.poster_path,
+        dateTime: rdate,
         releaseDate: format(rdate, 'LLLL d, yyy'),
         title: data.title,
         video: data.video,
@@ -45,23 +46,28 @@ class SearchResults extends Component {
     
     return (
       <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${movie.id}`}>
-        <Card title="" bordered={false} className="movie-card">
+        <Card title="" bordered={false} className="movie">
           <img
             className="movie--poster"
             alt={movie.title}
-            title={`${movie.posterPath} __ ${movie.backdropPath}`}
+            title={`${movie.popularity}`}
             src={this.buildImg(movie.posterPath, movie.backdropPath)}
           />
           <h5 className="movie--title" title={movie.title}>
             {movie.title}
           </h5>
-          <span className="movie--release-date">{movie.releaseDate}</span>
+          <time className="movie--release-date" dateTime={movie.dateTime}>
+            {movie.releaseDate}
+          </time>
           <ul className="movie--genres">{movie.genres}</ul>
-          <div className="movie--overview" title={movie.overview}>
-            <p>{ truncate.call(movie.overview, 150) }</p>
-          </div>
+          <article className="movie--overview" title={movie.overview}>
+            <p>{truncate.call(movie.overview, 150)}</p>
+          </article>
           <div className="movie--vote-average" title={movie.id}>
             {movie.voteAverage}
+          </div>
+          <div className="movie--rate">
+            <Rate count="10" allowHalf defaultValue={2.5} />
           </div>
         </Card>
       </Col>
@@ -69,10 +75,15 @@ class SearchResults extends Component {
   };
 
   render() {
-    const { items } = this.props;
+    const { items, isLoading, error } = this.props;
+    const dataOrNot = error ? (
+      <Alert className="alert-box" message={`Error: ${error}`} type="error" showIcon />
+    ) : items.map(elem => this.buildCard(elem));
+    const moviesBox = isLoading ? <Spin size="large" /> : dataOrNot;
+
     return (
       <Row gutter={[36, 36]} justify="space-around" className="movies-list">
-        { items.map(elem => this.buildCard(elem)) }
+        { moviesBox }  
       </Row>
     );
   }
@@ -81,11 +92,15 @@ class SearchResults extends Component {
 SearchResults.defaultProps = {
   items: [],
   genres: [],
+  isLoading: true,
+  error: false,
 };
 
 SearchResults.propTypes = {
   items: PropTypes.arrayOf(PropTypes.object),
   genres: PropTypes.arrayOf(PropTypes.object),
+  isLoading: PropTypes.bool,
+  error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 };
 
 export default SearchResults;

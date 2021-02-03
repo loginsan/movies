@@ -13,7 +13,27 @@ Simply combine them all and you will have a fully qualified URL. Here’s an exa
   https://image.tmdb.org/t/p/w500/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg
 
 
-npm i date-fns
+{page: 1, results: Array(20), total_pages: 72, total_results: 1439}
+
+App
+  Tabs*
+    TabPane*
+      SearchField
+        Input*
+      SearchResults
+        Spin*
+        Alert*
+        MoviesList
+          Row*
+            Col*
+              Card*
+                Rate*
+        Pagination
+
+
+
+
+npm i date-fns prop-types
 npm i --save-dev eslint
 npm i --save-dev eslint-config-airbnb eslint-config-prettier eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-react eslint-plugin-react-hooks babel-eslint prettier
 npm i --save-dev husky lint-staged

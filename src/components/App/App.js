@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import { Tabs, Input, Spin, Alert } from 'antd';
+import { Tabs } from 'antd';
 import SearchResults from '../SearchResults';
+import SearchField from '../SearchField';
 import 'antd/dist/antd.css';
 import './App.css';
 import TMDBService from '../../services/TMDBService';
@@ -10,68 +11,93 @@ function callback(key) {
   console.log(key);
 }
 
+function debounce(fn, delay) {
+  let inDebounce;
+  return function(...args) {
+    const context = this;
+    clearTimeout(inDebounce);
+    inDebounce = setTimeout(() => fn.apply(context, args), delay);
+  };
+}
+
 class App extends Component {
-  
   state = {
     activeTab: 'Search',
     isLoading: true,
     error: false,
+    searchValue: '',
+    founded: 0,
     genres: [],
     movies: [],
   };
 
-  componentDidMount() {
-    const mdb = new TMDBService();
-
-    Promise.all([mdb.getMovies('return'), mdb.getGenresList()])
-      .then(([mres, gres]) => [Array.from(mres.results), gres.genres])
-      .then(([movies, genres]) => {
+  constructor() {
+    super();
+    this.mdb = new TMDBService();
+    this.mdb
+      .getGenresList()
+      .then((res) => res.genres)
+      .then((genres) => {
         this.setState({
-          isLoading: false,
           genres,
-          movies,
         });
       })
-      .catch((err) => {
+      .catch(this.handleError);
+    this.handleSearch = debounce(this.handleSearchFunc, 100);
+  }
+
+  componentDidMount() {
+    this.handleSearch('return');
+  }
+
+  handleChangeSearchText = (event) => {
+    this.handleSearch( event.target.value );
+  };
+
+  handleSearchFunc = (byWords) => {
+    this.mdb
+      .getMovies(byWords)
+      .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
+      .then(({ movies, founded }) => {
         this.setState({
           isLoading: false,
-          error: err.message,
+          searchValue: byWords,
+          movies,
+          founded,
         });
-      });
-  }
+      })
+      .catch(this.handleError);
+  };
+
+  handleError = (err) => {
+    this.setState({
+      isLoading: false,
+      error: err.message,
+    });
+  };
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, isLoading, error, genres, movies } = this.state;
-
-    const dataOrNot = error ? (
-      <Alert message={`Error: ${error}`} type="error" showIcon />
-    ) : (
-      <SearchResults genres={genres} items={movies} />
-    );
-    const moviesBox = isLoading ? (
-      <Spin size="large" />
-    ) : dataOrNot;
+    const { activeTab, isLoading, founded, error, searchValue, genres, movies } = this.state;
 
     return (
-      <div className="App">
-        <p className="attribution">
-          About Movies App: &quot;This product uses the <a href="https://www.themoviedb.org/">TMDb</a> API but is not
-          endorsed or certified by TMDb.&quot;
-        </p>
+      <div className="App" title={founded}>
         <Tabs defaultActiveKey="1" onChange={callback} className="Tabs">
           <TabPane tab="Search" key="1">
-            <form className="search-form" action="/">
-              <Input placeholder="Type to search…" className="search-field" />
-            </form>
+            <SearchField onChange={this.handleChangeSearchText} value={searchValue} />
             <section className="search-results--wrap">
-              { moviesBox }
+              <SearchResults items={movies} genres={genres} error={error} isLoading={isLoading} />
             </section>
           </TabPane>
           <TabPane tab="Rated" key="2">
             Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}
           </TabPane>
         </Tabs>
+
+        <p className="attribution">
+          About Movies App: &quot;This product uses the <a href="https://www.themoviedb.org/">TMDb</a> API but is not
+          endorsed or certified by TMDb.&quot;
+        </p>
       </div>
     );
   }

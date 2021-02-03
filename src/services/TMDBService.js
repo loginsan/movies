@@ -31,6 +31,6 @@ export default class TMDBService {
   }
 
   getGenresList() {
-    return this.ask('/genre/movies/list');
+    return this.ask('/genre/movie/list');
   }
 }
