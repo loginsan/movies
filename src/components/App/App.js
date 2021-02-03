@@ -61,6 +61,7 @@ class App extends Component {
       .getMovies(byWords)
       .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
       .then(({ movies, founded }) => {
+
         if (founded === 0) {
           this.setState({
             isLoading: false,

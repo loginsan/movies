@@ -28,6 +28,12 @@
 
 .search-results--wrap {
   padding: 0 36px;
+  min-width: 938px;
+}
+
+.alert-box {
+  text-align: center;
+  height: 300px;
 }
 
 .ant-card-body {

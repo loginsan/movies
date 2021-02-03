@@ -26,7 +26,6 @@ class SearchResults extends Component {
   }
 
   buildCard = (data) => {
-
     const movie = {
       backdropPath: data.backdrop_path,
       genres: data.genre_ids.map(elem => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
@@ -37,22 +36,25 @@ class SearchResults extends Component {
       popularity: data.popularity,
       posterPath: data.poster_path,
       posterSrc: this.buildImg(data.poster_path, data.backdrop_path),
-      releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : Date.now(),
+      releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : new Date(),
       title: data.title,
       video: data.video,
       voteAverage: data.vote_average,
       voteCount: data.vote_count,
     };
 
-    return <MovieCard movie={movie} />;
+    return <MovieCard movie={movie} key={`m${movie.id}`} />;
   };
 
   render() {
     const { items, isLoading, error } = this.props;
+
     const dataOrNot = error ? (
       <Alert className="alert-box" message={error} type="error" showIcon />
     ) : items.map(elem => this.buildCard(elem));
-    const moviesBox = isLoading ? <Spin size="large" /> : dataOrNot;
+    const moviesBox = !isLoading ? dataOrNot : (
+      <Spin size="large" tip="Loading..." />
+    );
 
     return (
       <Row gutter={[36, 36]} justify="space-around" className="movies-list">
@@ -76,50 +78,58 @@ SearchResults.propTypes = {
   error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 };
 
-const MovieCard = ({id, title, originalTitle, posterSrc, releaseDate, genres, overview, voteAverage}) => (
-  <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${id}`}>
-    <Card title="" bordered={false} className="movie">
-      <img className="movie--poster" alt={title} title={originalTitle} src={posterSrc} />
-      <h5 className="movie--title" title={title}>
-        {title}
-      </h5>
-      <time className="movie--release-date" dateTime={releaseDate}>
-        { format(releaseDate, 'LLLL d, yyy') }
-      </time>
-      <ul className="movie--genres">{genres}</ul>
-      <article className="movie--overview" title={overview}>
-        <p>{truncate.call(overview, 150)}</p>
-      </article>
-      <div className="movie--vote-average" title={id}>
-        {voteAverage}
-      </div>
-      <div className="movie--rate">
-        <Rate count="10" allowHalf defaultValue={2.5} />
-      </div>
-    </Card>
-  </Col>
-);
+
+const MovieCard = ({ movie }) => {
+  const { id, title, originalTitle, posterSrc, releaseDate, genres, overview, voteAverage } = movie;
+  return (
+    <Col span={12} xs={24} sm={12} lg={12} xl={12}>
+      <Card title="" bordered={false} className="movie">
+        <img className="movie--poster" alt={title} title={originalTitle} src={posterSrc} />
+        <h5 className="movie--title" title={title}>
+          {title}
+        </h5>
+        <time className="movie--release-date" dateTime={releaseDate}>
+          {format(releaseDate, 'LLLL d, yyy')}
+        </time>
+        <ul className="movie--genres">{genres}</ul>
+        <article className="movie--overview" title={overview}>
+          <p>{truncate.call(overview, 150)}</p>
+        </article>
+        <div className="movie--vote-average" title={id}>
+          {voteAverage}
+        </div>
+        <div className="movie--rate">
+          <Rate count="10" allowHalf defaultValue={2.5} />
+        </div>
+      </Card>
+    </Col>
+  );
+};
 
 MovieCard.defaultProps = {
-  id: 0,
-  title: 'Working Title',
-  originalTitle: 'Working Title',
-  posterSrc: './noposter.svg',
-  releaseDate: Date.now(),
-  genres: [<li key='g0-0'>noname</li>],
-  overview: 'Some text here',
-  voteAverage: 2.5,
+  movie: {
+    id: 0,
+    title: 'Working Title',
+    originalTitle: 'Working Title',
+    posterSrc: './noposter.svg',
+    releaseDate: new Date(),
+    genres: [<li key='g0-0'>noname</li>],
+    overview: 'Some text here',
+    voteAverage: 2.5,
+  }
 };
 
 MovieCard.propTypes = {
-  id: PropTypes.number,
-  title: PropTypes.string,
-  originalTitle: PropTypes.string,
-  posterSrc: PropTypes.string,
-  releaseDate: PropTypes.number,
-  genres: PropTypes.arrayOf(PropTypes.node),
-  overview: PropTypes.string,
-  voteAverage: PropTypes.number,
-}
+  movie: PropTypes.shape({
+    id: PropTypes.number,
+    title: PropTypes.string,
+    originalTitle: PropTypes.string,
+    posterSrc: PropTypes.string,
+    releaseDate: PropTypes.instanceOf(Date),
+    genres: PropTypes.arrayOf(PropTypes.node),
+    overview: PropTypes.string,
+    voteAverage: PropTypes.number,
+  }),
+};
 
 export default SearchResults;
