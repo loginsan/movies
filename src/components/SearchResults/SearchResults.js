@@ -50,8 +50,9 @@ class SearchResults extends Component {
     const { items, isLoading, error } = this.props;
 
     const dataOrNot = error ? (
-      <Alert className="alert-box" message={error} type="error" showIcon />
+      <Alert className="alert-box" message="Error" description={error} type="error" showIcon />
     ) : items.map(elem => this.buildCard(elem));
+
     const moviesBox = !isLoading ? dataOrNot : (
       <Spin size="large" tip="Loading..." />
     );

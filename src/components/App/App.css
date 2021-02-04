@@ -23,7 +23,7 @@
 }
 
 .search-form {
-  margin: 32px;
+  margin: 4px 36px 32px;
 }
 
 .search-results--wrap {
@@ -32,8 +32,18 @@
 }
 
 .alert-box {
-  text-align: center;
+  display: flex;
+  align-items: center;
   height: 300px;
+  margin: 5rem 3rem 25rem;
+  font-size: 2rem;
+}
+.ant-spin {
+  display: block;
+  padding: 3rem;
+  margin-bottom: 35rem;
+  margin-top: 5rem;
+  transform: scale(3);
 }
 
 .ant-card-body {
@@ -61,7 +71,7 @@
 .movie--title {
   margin-top: 12px;
   margin-bottom: 0;
-  
+
   margin-right: 25px;
   font-size: 20px;
   line-height: 1.4;
@@ -72,7 +82,7 @@
 .movie--release-date {
   display: block;
   margin-top: 7px;
-  
+
   font-size: 12px;
   line-height: 22px;
   color: #827E7E;
