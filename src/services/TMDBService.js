@@ -28,6 +28,10 @@ export default class TMDBService {
     return this.ask(`/search/movie`, `&query=${query}`);
   }
 
+  getMoviesPage(query, page) {
+    return this.ask(`/search/movie`, `&query=${query}&page=${page}`);
+  }
+
   getConfiguration() {
     return this.ask(`/configuration`);
   }

@@ -25,13 +25,21 @@ class App extends Component {
     activeTab: 'Search',
     isLoading: true,
     error: false,
+    founded: 0,
+    totalPages: 0,
     genres: [],
     movies: [],
   };
 
+  mdb = new TMDBService();
+
   constructor() {
     super();
-    this.mdb = new TMDBService();
+
+    this.handleSearch = debounce(this.handleSearchFunc, 300);
+  }
+
+  componentDidMount() {
     this.mdb
       .getGenresList()
       .then((res) => res.genres)
@@ -41,10 +49,6 @@ class App extends Component {
         });
       })
       .catch(this.handleError);
-    this.handleSearch = debounce(this.handleSearchFunc, 300);
-  }
-
-  componentDidMount() {
     this.handleSearch('return');
   }
 
@@ -59,17 +63,21 @@ class App extends Component {
     });
     this.mdb
       .getMovies(byWords)
-      .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
-      .then(({ movies, founded }) => {
+      .then((res) => ({ movies: Array.from(res.results), founded: res.total_results, pages: res.total_pages }))
+      .then(({ movies, founded, pages }) => {
 
         if (founded === 0) {
           this.setState({
             isLoading: false,
+            founded: 0,
+            totalPages: 0,
             error: `Не найдено фильмов по фразе '${byWords}'`,
           });
         } else {
           this.setState({
             isLoading: false,
+            founded,
+            totalPages: pages,
             error: false,
             movies,
           });
@@ -87,7 +95,7 @@ class App extends Component {
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, isLoading, error, genres, movies } = this.state;
+    const { activeTab, isLoading, founded, totalPages, error, genres, movies } = this.state;
 
     return (
       <div className="App">
@@ -95,7 +103,7 @@ class App extends Component {
           <TabPane tab="Search" key="1">
             <SearchField onChange={this.handleChangeSearchText} />
             <section className="search-results--wrap">
-              <SearchResults items={movies} genres={genres} error={error} isLoading={isLoading} />
+              <SearchResults items={movies} genres={genres} error={error} isLoading={isLoading} founded={founded} pages={totalPages} />
             </section>
           </TabPane>
           <TabPane tab="Rated" key="2">

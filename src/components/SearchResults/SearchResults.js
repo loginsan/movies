@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { PropTypes}  from 'prop-types';
-import { Card, Col, Row, Rate, Spin, Alert } from 'antd';
+import { Card, Col, Row, Rate, Spin, Alert, Pagination } from 'antd';
 import { format, isValid } from 'date-fns';
 
 
@@ -46,8 +46,12 @@ class SearchResults extends Component {
     return <MovieCard movie={movie} key={`m${movie.id}`} />;
   };
 
+  handlePageChange = (pageNum) => {
+    console.log(pageNum);
+  }
+
   render() {
-    const { items, isLoading, error } = this.props;
+    const { items, isLoading, founded, pages, error } = this.props;
 
     const dataOrNot = error ? (
       <Alert className="alert-box" message="Error" description={error} type="error" showIcon />
@@ -57,10 +61,22 @@ class SearchResults extends Component {
       <Spin size="large" tip="Loading..." />
     );
 
+    const pagination = founded? (
+      <Pagination
+        onChange={this.handlePageChange}
+        defaultCurrent={1}
+        defaultPageSize={20}
+        showTitle={false}
+        total={pages}
+        hideOnSinglePage
+      />) : null;
+
     return (
-      <Row gutter={[36, 36]} justify="space-around" className="movies-list">
+      <><Row gutter={[36, 36]} justify="space-around" className="movies-list">
         { moviesBox }
       </Row>
+      { pagination }
+      </>
     );
   }
 }
@@ -70,6 +86,8 @@ SearchResults.defaultProps = {
   genres: [],
   isLoading: true,
   error: false,
+  founded: 0,
+  pages: 0,
 };
 
 SearchResults.propTypes = {
@@ -77,6 +95,8 @@ SearchResults.propTypes = {
   genres: PropTypes.arrayOf(PropTypes.object),
   isLoading: PropTypes.bool,
   error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  founded: PropTypes.number,
+  pages: PropTypes.number,
 };
 
 
