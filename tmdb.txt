@@ -30,14 +30,56 @@ App
                 Rate*
         Pagination
 
+App s:search_word
+  SearchField --- search_word
+    Input --- search_word, handleChange, handleSubmit
+  SearchResults --- s:{founded, error, isLoading, pageNum, movies}  p:search_word
+    Spin
+    Alert
+    MoviesList --- genres
+      Card --- genres, movie
+    Pagination --- current_page, total_pages, search_word, handleChange
 
-Используя MovieDB API разработайте приложение для поиска фильмов.
-  В качестве библиотекой компонентов используем Antd.
-  Добавить индикатор загрузки - возьмите из библиотеки Antd компонент Spin.
-  Реализуйте обработку ошибок - возьмите компонент Alert
-  Реализуйте обработку ситуации, когда у пользователя нет сети (вы можете эмулировать это в chrome dev tools).
 
 
+componentDidMount() {
+    this.handleSearch = debounce(this.handleSearchFunc, 300);
+    this.mdb
+      .getGenresList()
+      .then((res) => res.genres)
+      .then((genres) => {
+        this.setState({
+          genres,
+        });
+      })
+      .catch(this.handleError);
+    this.handleSearch('return');
+  }
+
+isLoading={isLoading} founded={founded} pages={totalPages}
+
+
+<Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${movie.id}`}>
+        <Card title="" bordered={false} className="movie">
+          <img className="movie--poster" alt={movie.title} title={movie.originalTitle} src={movie.posterSrc} />
+          <h5 className="movie--title" title={movie.title}>
+            {movie.title}
+          </h5>
+          <time className="movie--release-date" dateTime={movie.releaseDate}>
+            {format(movie.releaseDate, 'LLLL d, yyy')}
+          </time>
+          <ul className="movie--genres">{movie.genres}</ul>
+          <article className="movie--overview" title={movie.overview}>
+            <p>{truncate.call(movie.overview, 150)}</p>
+          </article>
+          <div className="movie--vote-average" title={movie.id}>
+            {movie.voteAverage}
+          </div>
+          <div className="movie--rate">
+            <Rate count="10" allowHalf defaultValue={2.5} />
+          </div>
+        </Card>
+      </Col>
 
 npm i date-fns prop-types
 npm i --save-dev eslint

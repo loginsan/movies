@@ -5,110 +5,55 @@ import SearchField from '../SearchField';
 import 'antd/dist/antd.css';
 import './App.css';
 import TMDBService from '../../services/TMDBService';
+import { callbackTab } from '../../services/helpers';
 
-
-function callback(key) {
-  console.log(key);
-}
-
-function debounce(fn, delay) {
-  let inDebounce;
-  return function(...args) {
-    const context = this;
-    clearTimeout(inDebounce);
-    inDebounce = setTimeout(() => fn.apply(context, args), delay);
-  };
-}
 
 class App extends Component {
   state = {
     activeTab: 'Search',
-    isLoading: true,
     error: false,
-    founded: 0,
-    totalPages: 0,
     genres: [],
-    movies: [],
+    query: '',
   };
 
   mdb = new TMDBService();
 
-  constructor() {
-    super();
-
-    this.handleSearch = debounce(this.handleSearchFunc, 300);
-  }
-
   componentDidMount() {
     this.mdb
       .getGenresList()
-      .then((res) => res.genres)
-      .then((genres) => {
-        this.setState({
-          genres,
-        });
+      .then(res => {
+        this.setState({ genres: res.genres })
       })
       .catch(this.handleError);
-    this.handleSearch('return');
   }
 
   handleChangeSearchText = (event) => {
-    this.handleSearch( event.target.value );
-  };
-
-  handleSearchFunc = (byWords) => {
-    if (byWords.length < 2) return;
-    this.setState({
-      isLoading: true,
-    });
-    this.mdb
-      .getMovies(byWords)
-      .then((res) => ({ movies: Array.from(res.results), founded: res.total_results, pages: res.total_pages }))
-      .then(({ movies, founded, pages }) => {
-
-        if (founded === 0) {
-          this.setState({
-            isLoading: false,
-            founded: 0,
-            totalPages: 0,
-            error: `Не найдено фильмов по фразе '${byWords}'`,
-          });
-        } else {
-          this.setState({
-            isLoading: false,
-            founded,
-            totalPages: pages,
-            error: false,
-            movies,
-          });
-        }
-      })
-      .catch(this.handleError);
+    this.setState({ query: event.target.value });
   };
 
   handleError = (err) => {
-    this.setState({
-      isLoading: false,
-      error: err.message,
-    });
+    this.setState({ error: err.message });
   };
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, isLoading, founded, totalPages, error, genres, movies } = this.state;
+    const { activeTab, error, genres, query } = this.state;
 
     return (
       <div className="App">
-        <Tabs defaultActiveKey="1" onChange={callback} className="Tabs">
+        <Tabs defaultActiveKey="1" onChange={callbackTab} className="Tabs">
+          
           <TabPane tab="Search" key="1">
-            <SearchField onChange={this.handleChangeSearchText} />
+            <SearchField onChange={this.handleChangeSearchText} query={query} />
             <section className="search-results--wrap">
-              <SearchResults items={movies} genres={genres} error={error} isLoading={isLoading} founded={founded} pages={totalPages} />
+              <SearchResults genres={genres} error={error} query={query} />
             </section>
           </TabPane>
+
           <TabPane tab="Rated" key="2">
             Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}
           </TabPane>
+
         </Tabs>
 
         <p className="attribution">

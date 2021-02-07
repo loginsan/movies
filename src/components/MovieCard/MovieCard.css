@@ -1,0 +1,192 @@
+.movie {
+  position: relative;
+  min-width: 387px;
+  height: 245px;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .15);
+  text-align: left;
+  overflow: hidden;
+}
+
+.movie ::after {
+  clear: both;
+}
+
+.movies-list {
+  display: flex;
+  justify-content: space-around;
+}
+
+.movie--title {
+  margin-top: 4px;
+  margin-bottom: 0;
+  margin-right: 20px;
+  padding-left: 13px;
+  font-size: 20px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.movie--release-date {
+  display: inline-block;
+  margin-top: 7px;
+  padding-left: 13px;
+  font-size: 12px;
+  line-height: 22px;
+  color: #827E7E;
+}
+
+.movie--genres {
+  list-style: none;
+  margin-top: 7px;
+  margin-bottom: 0;
+  max-height: 26px;
+  overflow: hidden;
+  padding: 0 0 0 13px;
+  font-size: 12px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.movie--genres li {
+  display: inline-block;
+  margin-bottom: 5px;
+  margin-right: 8px;
+  background: #FAFAFA;
+  border: 1px solid #D9D9D9;
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+
+.movie--overview, .movie--vote-average {
+  font-size: 12px;
+  line-height: 22px;
+  color: #000000;
+}
+
+.movie--overview {
+  margin-top: 5px;
+  padding-left: 10px;
+  margin-right: -10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  hyphens: auto;
+}
+
+.movie--vote-average {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  width: 30px;
+  height: 30px;
+  right: 8px;
+  top: 5px;
+  text-align: center;
+  border-radius: 50%;
+  border: 2px solid #E9D100;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie--poster {
+  float: left;
+  max-width: 60px;
+  margin: 6px 0 0 10px;
+}
+
+.movie--rate {
+  position: absolute;
+  z-index: 7;
+  left: 203px;
+  bottom: 16px;
+}
+
+.movie--rate .ant-rate-star:not(:last-child) {
+  margin-right: 6px;
+}
+.movie--rate .ant-rate-star.ant-rate-star-full svg {
+  width: 18px;
+  height: 20px;
+  margin-right: 0;
+}
+.movie--rate .ant-rate-star.ant-rate-star-zero svg {
+  width: 18px;
+  height: 20px;
+  margin-right: 0;
+}
+.movie--rate .ant-rate-star.ant-rate-star-half svg {
+  width: 18px;
+  height: 20px;
+  margin-right: 0;
+}
+
+.movie .rate-low {
+  border-color: #E90000
+}
+.movie .rate-poor {
+  border-color: #E97E00
+}
+.movie .rate-norm {
+  border-color: #E9D100
+}
+.movie .rate-top {
+  border-color: #66E900
+}
+
+.search-results--wrap {
+  padding: 0 16px;
+  min-width: 420px;
+}
+
+
+@media screen and (min-width:768px) {
+  .movie {
+    min-width: 454px;
+    height: 281px;
+  }
+  
+  .movie--title {
+    margin-top: 12px;
+    margin-right: 25px;
+    padding-left: 20px;
+  }
+
+  .movie--release-date {
+    padding-left: 20px;
+  }
+
+  .movie--genres {
+    padding-left: 20px;
+    max-height: 52px;
+  }
+
+  .movie--genres {
+    padding-left: 20px;
+    margin-right: 0;
+  }
+
+  .movie--overview {
+    padding-left: 20px;
+    margin-right: 0;
+  }
+
+  .movie--vote-average {   
+    right: 9px;
+    top: 12px;
+  }
+
+  .movie--poster {
+    max-width: 185px;
+    margin: 0;
+  }
+
+  .search-results--wrap {
+    padding: 0 36px;
+    min-width: 938px;
+  }
+
+}
+@media screen and (min-width:1440px) {
+  
+}

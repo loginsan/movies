@@ -1,34 +1,88 @@
 import React, { Component } from 'react';
 import { PropTypes}  from 'prop-types';
-import { Card, Col, Row, Rate, Spin, Alert, Pagination } from 'antd';
-import { format, isValid } from 'date-fns';
+import { Row, Spin, Alert, Pagination } from 'antd';
+import { isValid } from 'date-fns';
+import MovieCard from '../MovieCard';
+import { debounce } from '../../services/helpers';
+import TMDBService from '../../services/TMDBService';
 
-
-function truncate(limit){
-    if (this.length <= limit) {
-      return this;
-    }
-    const short = this.substr(0, limit - 1);
-    return `${short.substr(0, short.lastIndexOf(' '))}…`;
-}
 
 class SearchResults extends Component {
+  state = {
+    isLoading: true,
+    errorSearch: false,
+    founded: 0,
+    movies: [],
+    page: 1,
+  };
+
+  mdb = new TMDBService();
+
+  componentDidMount() {
+    this.handleSearch = debounce(this.handleSearchFunc, 200);
+    // this.setState({query: 'return'});
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { query } = this.props;
+    const { page } = this.state;
+    if (prevProps.query !== query || prevState.page !== page) {
+      this.handleSearch();
+    }
+  }
+
+  handleSearchFunc = () => {
+    const { query } = this.props;
+    const { page } = this.state;
+    if (query.length < 2) return;
+    this.setState({
+      isLoading: true,
+      errorSearch: false,
+    });
+    this.mdb
+      .getMoviesPage(query, page)
+      .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
+      .then(({ movies, founded }) => {
+        if (founded === 0) {
+          this.setState({
+            isLoading: false,
+            founded: 0,
+            errorSearch: `Не найдено фильмов по фразе '${query}'`,
+          });
+        } else {
+          this.setState({
+            isLoading: false,
+            founded,
+            errorSearch: false,
+            movies,
+          });
+        }
+      })
+      .catch(this.handleError);
+  };
+
+  handleError = (err) => {
+    this.setState({
+      isLoading: false,
+      errorSearch: err.message,
+    });
+  };
 
   nameGenre = (id) => {
     const { genres } = this.props;
-    const gobj = genres.find(elem => elem.id === id);
+    const gobj = genres.find((elem) => elem.id === id);
     return gobj ? gobj.name : '';
-  }
+  };
 
   buildImg = (pp, bp) => {
     const noposter = './noposter.svg';
     return pp || bp ? `https://image.tmdb.org/t/p/w185${pp || bp}` : noposter;
-  }
+  };
 
   buildCard = (data) => {
     const movie = {
       backdropPath: data.backdrop_path,
-      genres: data.genre_ids.map(elem => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
+      genres: data.genre_ids.map((elem) => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
       id: data.id,
       originalLanguage: data.original_language,
       originalTitle: data.original_title,
@@ -47,110 +101,60 @@ class SearchResults extends Component {
   };
 
   handlePageChange = (pageNum) => {
-    console.log(pageNum);
-  }
+    // const { query } = this.props;
+    // const { page } = this.state;
+    this.setState({ page: pageNum });
+  };
 
   render() {
-    const { items, isLoading, founded, pages, error } = this.props;
+    const { error } = this.props;
+    const { movies, isLoading, founded, page, errorSearch } = this.state;
 
-    const dataOrNot = error ? (
-      <Alert className="alert-box" message="Error" description={error} type="error" showIcon />
-    ) : items.map(elem => this.buildCard(elem));
+    const errorBox =
+      error || errorSearch ? (
+        <Alert className="alert-box" message="Error" description={error || errorSearch} type="error" showIcon />
+      ) : null;
+    const loadBox = isLoading ? <Spin size="large" tip="Loading..." /> : null;
+    const moviesBox = !error && !errorSearch && !isLoading ? movies.map((elem) => this.buildCard(elem)) : null;
 
-    const moviesBox = !isLoading ? dataOrNot : (
-      <Spin size="large" tip="Loading..." />
-    );
-
-    const pagination = founded? (
+    const pagination = founded ? (
       <Pagination
         onChange={this.handlePageChange}
-        defaultCurrent={1}
+        defaultCurrent={page}
         defaultPageSize={20}
         showTitle={false}
-        total={pages}
+        showSizeChanger={false}
+        total={founded}
+        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
         hideOnSinglePage
-      />) : null;
+      />
+    ) : null;
 
     return (
-      <><Row gutter={[36, 36]} justify="space-around" className="movies-list">
-        { moviesBox }
-      </Row>
-      { pagination }
+      <>
+        <Row gutter={[36, 36]} justify="space-around" className="movies-list">
+          {loadBox}
+          {errorBox}
+          {moviesBox}
+        </Row>
+        {pagination}
       </>
     );
   }
 }
 
 SearchResults.defaultProps = {
-  items: [],
   genres: [],
-  isLoading: true,
   error: false,
-  founded: 0,
-  pages: 0,
+  query: '',
 };
 
 SearchResults.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.object),
   genres: PropTypes.arrayOf(PropTypes.object),
-  isLoading: PropTypes.bool,
   error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  founded: PropTypes.number,
-  pages: PropTypes.number,
+  query: PropTypes.string,
 };
 
 
-const MovieCard = ({ movie }) => {
-  const { id, title, originalTitle, posterSrc, releaseDate, genres, overview, voteAverage } = movie;
-  return (
-    <Col span={12} xs={24} sm={12} lg={12} xl={12}>
-      <Card title="" bordered={false} className="movie">
-        <img className="movie--poster" alt={title} title={originalTitle} src={posterSrc} />
-        <h5 className="movie--title" title={title}>
-          {title}
-        </h5>
-        <time className="movie--release-date" dateTime={releaseDate}>
-          {format(releaseDate, 'LLLL d, yyy')}
-        </time>
-        <ul className="movie--genres">{genres}</ul>
-        <article className="movie--overview" title={overview}>
-          <p>{truncate.call(overview, 150)}</p>
-        </article>
-        <div className="movie--vote-average" title={id}>
-          {voteAverage}
-        </div>
-        <div className="movie--rate">
-          <Rate count="10" allowHalf defaultValue={2.5} />
-        </div>
-      </Card>
-    </Col>
-  );
-};
-
-MovieCard.defaultProps = {
-  movie: {
-    id: 0,
-    title: 'Working Title',
-    originalTitle: 'Working Title',
-    posterSrc: './noposter.svg',
-    releaseDate: new Date(),
-    genres: [<li key='g0-0'>noname</li>],
-    overview: 'Some text here',
-    voteAverage: 2.5,
-  }
-};
-
-MovieCard.propTypes = {
-  movie: PropTypes.shape({
-    id: PropTypes.number,
-    title: PropTypes.string,
-    originalTitle: PropTypes.string,
-    posterSrc: PropTypes.string,
-    releaseDate: PropTypes.instanceOf(Date),
-    genres: PropTypes.arrayOf(PropTypes.node),
-    overview: PropTypes.string,
-    voteAverage: PropTypes.number,
-  }),
-};
 
 export default SearchResults;
