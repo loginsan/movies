@@ -59,6 +59,27 @@ componentDidMount() {
 isLoading={isLoading} founded={founded} pages={totalPages}
 
 
+  buildCard = (data) => {
+    const movie = {
+      backdropPath: data.backdrop_path,
+      genres: data.genre_ids.map((elem) => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
+      id: data.id,
+      originalLanguage: data.original_language,
+      originalTitle: data.original_title,
+      overview: data.overview,
+      popularity: data.popularity,
+      posterPath: data.poster_path,
+      posterSrc: this.buildImg(data.poster_path, data.backdrop_path),
+      releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : new Date(),
+      title: data.title,
+      video: data.video,
+      voteAverage: data.vote_average,
+      voteCount: data.vote_count,
+    };
+
+    return <MovieCard movie={movie} key={`m${movie.id}`} />;
+  };
+
 <Col span={12} xs={24} sm={12} lg={12} xl={12} key={`m${movie.id}`}>
         <Card title="" bordered={false} className="movie">
           <img className="movie--poster" alt={movie.title} title={movie.originalTitle} src={movie.posterSrc} />

@@ -6,6 +6,7 @@ import 'antd/dist/antd.css';
 import './App.css';
 import TMDBService from '../../services/TMDBService';
 import { callbackTab } from '../../services/helpers';
+import { GenresProvider } from '../genres-context';
 
 
 class App extends Component {
@@ -41,21 +42,20 @@ class App extends Component {
 
     return (
       <div className="App">
-        <Tabs defaultActiveKey="1" onChange={callbackTab} className="Tabs">
-          
-          <TabPane tab="Search" key="1">
-            <SearchField onChange={this.handleChangeSearchText} query={query} />
-            <section className="search-results--wrap">
-              <SearchResults genres={genres} error={error} query={query} />
-            </section>
-          </TabPane>
+        <GenresProvider value={genres}>
+          <Tabs defaultActiveKey="1" onChange={callbackTab} className="Tabs">
+            <TabPane tab="Search" key="1">
+              <SearchField onChange={this.handleChangeSearchText} query={query} />
+              <section className="search-results--wrap">
+                <SearchResults error={error} query={query} />
+              </section>
+            </TabPane>
 
-          <TabPane tab="Rated" key="2">
-            Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}
-          </TabPane>
-
-        </Tabs>
-
+            <TabPane tab="Rated" key="2">
+              Rated Pane (2) {activeTab === 'Search' ? null : '(active)'}
+            </TabPane>
+          </Tabs>
+        </GenresProvider>
         <p className="attribution">
           About Movies App: &quot;This product uses the <a href="https://www.themoviedb.org/">TMDb</a> API but is not
           endorsed or certified by TMDb.&quot;
