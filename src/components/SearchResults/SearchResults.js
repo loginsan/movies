@@ -9,11 +9,12 @@ import TMDBService from '../../services/TMDBService';
 
 class SearchResults extends Component {
   state = {
-    isLoading: true,
+    isLoading: false,
     errorSearch: false,
     founded: 0,
     movies: [],
     page: 1,
+    onboard: true,
   };
 
   mdb = new TMDBService();
@@ -23,24 +24,31 @@ class SearchResults extends Component {
     // this.setState({query: 'return'});
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     const { query } = this.props;
-    const { page } = this.state;
-    if (prevProps.query !== query || prevState.page !== page) {
-      this.handleSearch();
+    if (prevProps.query !== query) {
+      this.handleSearch(1);
     }
   }
 
-  handleSearchFunc = () => {
+  handleSearchFunc = (pageNum) => {
     const { query } = this.props;
-    const { page } = this.state;
-    if (query.length < 2) return;
+    if (query.length < 2) {
+      this.setState({
+        isLoading: false,
+        errorSearch: false,
+        onboard: true,
+      });
+      return;
+    }
     this.setState({
       isLoading: true,
       errorSearch: false,
+      onboard: false,
+      page: pageNum,
     });
     this.mdb
-      .getMoviesPage(query, page)
+      .getMoviesPage(query, pageNum)
       .then((res) => ({ movies: Array.from(res.results), founded: res.total_results }))
       .then(({ movies, founded }) => {
         if (founded === 0) {
@@ -48,6 +56,7 @@ class SearchResults extends Component {
             isLoading: false,
             founded: 0,
             errorSearch: `Не найдено фильмов по фразе '${query}'`,
+            page: 1,
           });
         } else {
           this.setState({
@@ -64,6 +73,7 @@ class SearchResults extends Component {
   handleError = (err) => {
     this.setState({
       isLoading: false,
+      onboard: false,
       errorSearch: err.message,
     });
   };
@@ -101,26 +111,30 @@ class SearchResults extends Component {
   };
 
   handlePageChange = (pageNum) => {
-    // const { query } = this.props;
-    // const { page } = this.state;
-    this.setState({ page: pageNum });
+    this.handleSearch(pageNum);
   };
 
   render() {
     const { error } = this.props;
-    const { movies, isLoading, founded, page, errorSearch } = this.state;
-
+    const { movies, isLoading, founded, errorSearch, page, onboard } = this.state;
+    const onboardBox = onboard? (
+      <Alert className="alert-box" message="Movies App"
+        description="Приложение ищет фильмы по запросу. Поисковый запрос должен содержать как минимум 2 символа."
+        type="info" showIcon
+      />
+    ) : null;
     const errorBox =
       error || errorSearch ? (
         <Alert className="alert-box" message="Error" description={error || errorSearch} type="error" showIcon />
       ) : null;
     const loadBox = isLoading ? <Spin size="large" tip="Loading..." /> : null;
-    const moviesBox = !error && !errorSearch && !isLoading ? movies.map((elem) => this.buildCard(elem)) : null;
+    const moviesBox = !error && !errorSearch && !isLoading && !onboard? movies.map((elem) => this.buildCard(elem)) : null;
 
     const pagination = founded ? (
       <Pagination
         onChange={this.handlePageChange}
-        defaultCurrent={page}
+        defaultCurrent={1}
+        current={page}
         defaultPageSize={20}
         showTitle={false}
         showSizeChanger={false}
@@ -133,6 +147,7 @@ class SearchResults extends Component {
     return (
       <>
         <Row gutter={[36, 36]} justify="space-around" className="movies-list">
+          {onboardBox}
           {loadBox}
           {errorBox}
           {moviesBox}
