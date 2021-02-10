@@ -17,13 +17,19 @@ class App extends Component {
     query: '',
   };
 
+  // const loadState = localStorage.getItem('todoState');
+  // this.state = {
+  //   todoData: loadState === null ? [] : JSON.parse(loadState).todoData,
+  // };
+  // localStorage.setItem('todoState', JSON.stringify(this.state));
+
   mdb = new TMDBService();
 
   componentDidMount() {
     this.mdb
       .getGenresList()
-      .then(res => {
-        this.setState({ genres: res.genres })
+      .then((res) => {
+        this.setState({ genres: res.genres });
       })
       .catch(this.handleError);
   }
