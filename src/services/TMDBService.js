@@ -8,10 +8,17 @@ export default class TMDBService {
 
   key = `${this.apiLK}${this.apiRK}`;
 
-  async ask(url, paramStr = '') {
-    const path = `${this.base}${url}?api_key=${this.key}${paramStr}`;
+  async ask(url, params = '', value = null) {
+    const path = `${this.base}${url}?api_key=${this.key}${params}`;
+    const data = value === null? {} : {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+      },
+      body: JSON.stringify(value),
+    };
     try {
-      const res = await fetch(path);
+      const res = await fetch(path, data);
       if (!res.ok) {
         throw new Error(`Could not fetch ${url}, received ${res.status}`);
       }
@@ -20,10 +27,6 @@ export default class TMDBService {
     } catch (err) {
       throw new Error('Could not connect to remote site. Check you internet connection or try again later.');
     }
-  }
-
-  getMovies(query) {
-    return this.ask(`/search/movie`, `&query=${query}`);
   }
 
   getMoviesPage(query, page) {
@@ -44,11 +47,16 @@ export default class TMDBService {
     // { "success": true, "guest_session_id": "1ce82ec1223641636ad4a60b07de3581", "expires_at": "2016-08-27 16:26:40 UTC" }
   }
 
-  getRatedMovies(guestSessionId) {
-    return this.ask(`/guest_session/${guestSessionId}/rated/movies`);
+  getRatedMovies() {
+    return this.ask(`/guest_session/${this.guestSessionId}/rated/movies`);
   }
 
   // https://developers.themoviedb.org/3/movies/rate-movie
+  setMovieRate(movieId, rateValue) {
+    const data = { value: rateValue };
+    return this.ask(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`, data);
+    // { "status_code": 1, "status_message": "Success." }
+  }
 }
 
 

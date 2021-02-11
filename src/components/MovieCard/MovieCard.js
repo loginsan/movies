@@ -7,7 +7,25 @@ import './MovieCard.css';
 
 
 class MovieCard extends Component {
-  
+  state = {
+    rate: 0,
+  };
+
+  componentDidMount() {
+    const { movie } = this.props;
+    const rateValue = this.getRateFromStorage(movie.id);
+    this.setState({ rate: rateValue });
+  }
+
+  saveRateToStorage = (id, value) => {
+    localStorage.setItem(`movie${id}-rate`, value);
+  };
+
+  getRateFromStorage = (id) => {
+    const movieRate = localStorage.getItem(`movie${id}-rate`);
+    return movieRate || 0;
+  };
+
   nameGenre = (id) => {
     const { genres } = this.props;
     const gobj = genres.find((elem) => elem.id === id);
@@ -20,19 +38,25 @@ class MovieCard extends Component {
   };
 
   buildCard = (data) => ({
-      id: data.id,
-      title: data.title,
-      originalTitle: data.original_title,
-      overview: data.overview,
-      genres: data.genre_ids.map((elem) => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
-      posterSrc: this.buildImg(data.poster_path, data.backdrop_path),
-      releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : new Date(),
-      voteAverage: data.vote_average,
-    }
-  );
+    id: data.id,
+    title: data.title,
+    originalTitle: data.original_title,
+    overview: data.overview,
+    genres: data.genre_ids.map((elem) => <li key={`g${data.id}-${elem}`}>{this.nameGenre(elem)}</li>),
+    posterSrc: this.buildImg(data.poster_path, data.backdrop_path),
+    releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : new Date(),
+    voteAverage: data.vote_average,
+  });
+
+  handleRateChange = (id, value) => {
+    // console.log(`Movie: ${id}, set rate: ${value}`);
+    this.setState({ rate: value });
+    this.saveRateToStorage(id, value);
+  };
 
   render() {
     const { movie } = this.props;
+    const { rate } = this.state;
     const { id, title, originalTitle, overview, genres, posterSrc, releaseDate, voteAverage } = this.buildCard(movie);
     return (
       <Col span={12} xs={24} sm={12} lg={12} xl={12}>
@@ -52,7 +76,7 @@ class MovieCard extends Component {
             {voteAverage}
           </div>
           <div className="movie--rate">
-            <Rate count="10" allowHalf defaultValue={2.5} />
+            <Rate count="10" allowHalf defaultValue={0} value={rate} onChange={(value) => this.handleRateChange(id, value)} />
           </div>
         </Card>
       </Col>

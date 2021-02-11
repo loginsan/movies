@@ -17,12 +17,6 @@ class App extends Component {
     query: '',
   };
 
-  // const loadState = localStorage.getItem('todoState');
-  // this.state = {
-  //   todoData: loadState === null ? [] : JSON.parse(loadState).todoData,
-  // };
-  // localStorage.setItem('todoState', JSON.stringify(this.state));
-
   mdb = new TMDBService();
 
   componentDidMount() {
@@ -30,6 +24,15 @@ class App extends Component {
       .getGenresList()
       .then((res) => {
         this.setState({ genres: res.genres });
+      })
+      .catch(this.handleError);
+    this.mdb
+      .getGuestSession()
+      .then((res) => {
+        if (res.success) {
+          this.mdb.guestSessionId = res.guest_session_id;
+          // console.log(`Guest session: ${res.guest_session_id}`);
+        }
       })
       .catch(this.handleError);
   }
@@ -53,7 +56,7 @@ class App extends Component {
             <TabPane tab="Search" key="1">
               <SearchField onChange={this.handleChangeSearchText} query={query} />
               <section className="search-results--wrap">
-                <SearchResults error={error} query={query} />
+                <SearchResults error={error} query={query} mdb={this.mdb} />
               </section>
             </TabPane>
 

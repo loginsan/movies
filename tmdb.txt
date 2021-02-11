@@ -41,6 +41,26 @@ App s:search_word
     Pagination --- current_page, total_pages, search_word, handleChange
 
 
+getSessionId = () => {
+    const sID = localStorage.getItem('guestSessionId');
+    const expiresAt = localStorage.getItem('expiresAt');
+    if (sID === null || sessionExpired(expiresAt)) {
+      this.mdb
+        .getGuestSession()
+        .then((res) => {
+          if (res.success === '') {
+            localStorage.setItem('guestSessionId', res.guest_session_id);
+            localStorage.setItem('expiresAt', res.expires_at);
+            this.sessionId = res.guest_session_id;
+          }
+        })
+        .catch(this.handleError);
+    } else {
+      this.sessionId = sID;
+    }
+  }
+
+
 
 componentDidMount() {
     this.handleSearch = debounce(this.handleSearchFunc, 300);

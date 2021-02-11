@@ -17,9 +17,9 @@ class SearchResults extends Component {
     page: 1,
   };
 
-  mdb = new TMDBService();
-
   componentDidMount() {
+    const { mdb } = this.props;
+    this.mdb = mdb;
     this.handleSearch = debounce(this.handleSearchFunc, 200);
     // this.setState({query: 'return'});
   }
@@ -138,6 +138,7 @@ SearchResults.defaultProps = {
 SearchResults.propTypes = {
   error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   query: PropTypes.string,
+  mdb: PropTypes.instanceOf(TMDBService).isRequired,
 };
 
 export default SearchResults;

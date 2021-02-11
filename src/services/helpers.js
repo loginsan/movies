@@ -28,4 +28,10 @@ export const rateClass = (rate) => {
   return 'rate-low';
 }
 
+export function sessionExpired(expiredAt) {
+  const now = Date.now();
+  const exp = new Date(expiredAt);
+  return now > exp.getTime();
+}
+
 export default TEST;
