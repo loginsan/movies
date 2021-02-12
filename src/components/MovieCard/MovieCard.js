@@ -14,7 +14,10 @@ class MovieCard extends Component {
   componentDidMount() {
     const { movie } = this.props;
     const rateValue = this.getRateFromStorage(movie.id);
-    this.setState({ rate: rateValue });
+    // if (rateValue !== 0) console.log(rateValue, typeof rateValue);
+    if (rateValue !== 0) {
+      this.setState({ rate: rateValue });
+    }
   }
 
   saveRateToStorage = (id, value) => {
@@ -23,7 +26,7 @@ class MovieCard extends Component {
 
   getRateFromStorage = (id) => {
     const movieRate = localStorage.getItem(`movie${id}-rate`);
-    return movieRate || 0;
+    return parseFloat(movieRate) || 0;
   };
 
   nameGenre = (id) => {
@@ -49,9 +52,10 @@ class MovieCard extends Component {
   });
 
   handleRateChange = (id, value) => {
-    // console.log(`Movie: ${id}, set rate: ${value}`);
+    const { onRate } = this.props;
     this.setState({ rate: value });
     this.saveRateToStorage(id, value);
+    onRate(id, value);
   };
 
   render() {
@@ -76,7 +80,7 @@ class MovieCard extends Component {
             {voteAverage}
           </div>
           <div className="movie--rate">
-            <Rate count="10" allowHalf defaultValue={0} value={rate} onChange={(value) => this.handleRateChange(id, value)} />
+            <Rate count="10" allowHalf value={rate} onChange={(value) => this.handleRateChange(id, value)} />
           </div>
         </Card>
       </Col>
@@ -92,8 +96,8 @@ MovieCard.defaultProps = {
     posterSrc: './noposter.svg',
     releaseDate: new Date(),
     genres: [<li key="g0-0">noname</li>],
-    overview: 'Some text here',
-    voteAverage: 2.5,
+    overview: 'Some movie overview text here',
+    voteAverage: 0,
   },
   genres: [],
 };
@@ -110,6 +114,7 @@ MovieCard.propTypes = {
     voteAverage: PropTypes.number,
   }),
   genres: PropTypes.arrayOf(PropTypes.object),
+  onRate: PropTypes.func.isRequired,
 };
 
 export default MovieCard;

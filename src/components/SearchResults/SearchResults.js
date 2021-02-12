@@ -79,6 +79,15 @@ class SearchResults extends Component {
     });
   };
 
+  handleRate = (id, rateValue) => {
+    this.mdb.setMovieRate(id, rateValue).then(res => {
+      if (res.status_code === 1) {
+        console.log('success rate');
+      }
+    })
+    .catch(this.handleError); 
+  };
+
   render() {
     const { error } = this.props;
     const { movies, isLoading, founded, errorSearch, page, onBoarding } = this.state;
@@ -99,7 +108,7 @@ class SearchResults extends Component {
     const moviesBox =
       !error && !errorSearch && !isLoading && !onBoarding
         ? movies.map((elem) => (<GenresConsumer key={`gc${elem.id}`}>
-            { (genres) => <MovieCard movie={elem} genres={genres} /> }
+            { (genres) => <MovieCard movie={elem} genres={genres} onRate={this.handleRate} /> }
           </GenresConsumer>)
         )
         : null;
