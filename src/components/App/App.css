@@ -28,10 +28,7 @@
 }
 
 .alert-box {
-  display: flex;
-  align-items: center;
-  height: 300px;
-  margin: 5rem 3rem 25rem;
+  margin: 3rem 3rem 38rem;
   font-size: 2rem;
   text-align: left;
 }

@@ -17,10 +17,6 @@ export function debounce(fn, delay) {
   };
 }
 
-export function callbackTab(key) {
-  console.log(key);
-}
-
 export const rateClass = (rate) => {
   if (rate > 7) return 'rate-top';
   if (rate > 5) return 'rate-norm';

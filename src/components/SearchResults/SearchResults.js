@@ -11,9 +11,10 @@ class SearchResults extends Component {
   state = {
     onBoarding: true,
     isLoading: false,
-    errorSearch: false,
+    error: false,
     founded: 0,
     movies: [],
+    rated: [],
     page: 1,
   };
 
@@ -21,6 +22,7 @@ class SearchResults extends Component {
     const { mdb } = this.props;
     this.mdb = mdb;
     this.handleSearch = debounce(this.handleSearchFunc, 200);
+    this.handleShowRated();
     // this.setState({query: 'return'});
   }
 
@@ -35,20 +37,11 @@ class SearchResults extends Component {
     const { query } = this.props;
 
     if (query.length < 2) {
-      this.setState({
-        onBoarding: true,
-        isLoading: false,
-        errorSearch: false,
-      });
+      this.setStateInfo();
       return;
     }
 
-    this.setState({
-      onBoarding: false,
-      isLoading: true,
-      errorSearch: false,
-      page: pageNum,
-    });
+    this.setStateLoading(pageNum);
 
     this.mdb
       .getMoviesPage(query, pageNum)
@@ -58,7 +51,7 @@ class SearchResults extends Component {
           this.setState({
             isLoading: false,
             founded: 0,
-            errorSearch: `Не найдено фильмов по фразе '${query}'`,
+            error: `Не найдено фильмов по фразе '${query}'`,
             page: 1,
           });
         } else {
@@ -75,79 +68,140 @@ class SearchResults extends Component {
   handleError = (err) => {
     this.setState({
       isLoading: false,
-      errorSearch: err.message,
+      error: err.message,
+      founded: 0,
     });
   };
 
-  handleRate = (id, rateValue) => {
-    this.mdb.setMovieRate(id, rateValue).then(res => {
-      if (res.status_code === 1) {
-        console.log('success rate');
-      }
-    })
-    .catch(this.handleError); 
+  handleShowRated = () => {
+    this.setStateLoading();
+
+    this.mdb
+      .getRatedMovies()
+      .then((res) => ({ rated: res.results, founded: res.total_results }))
+      .then(({ rated, founded }) => {
+        if (founded === 0) {
+          this.setState({
+            onBoarding: true,
+            isLoading: false,
+            error: `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`,
+          });
+        } else {
+          this.setState({
+            isLoading: false,
+            founded,
+            rated,
+          });
+        }
+      })
+      .catch(this.handleError);
   };
 
+  setStateLoading = (pageNum = 1) => {
+    this.setState({
+      onBoarding: false,
+      isLoading: true,
+      error: false,
+      founded: 0,
+      page: pageNum,
+    });
+  };
+
+  setStateInfo = () => {
+    this.setState({
+      onBoarding: true,
+      isLoading: false,
+      error: false,
+      founded: 0,
+    });
+  };
+
+
+  handleRate = (id, rateValue) => {
+    this.mdb
+      .setMovieRate(id, rateValue)
+      .then((res) => {
+        if (res.status_code === 1) {
+          console.log('success rate');
+        }
+      })
+      .catch(this.handleError);
+  };
+
+
+
+  renderPager = (curPage, totalResults) => (
+    <Pagination
+      onChange={this.handleSearchFunc}
+      current={curPage}
+      defaultPageSize={20}
+      showTitle={false}
+      showSizeChanger={false}
+      total={totalResults}
+      showTotal={(total, range) => `${range[0]}-${range[1]} из ${total} найденых`}
+    />
+  );
+
+  renderError = (msg) => (
+    <Alert className="alert-box" message="Что-то пошло не так…" description={msg} type="error" showIcon />
+  );
+
+  renderLoad = () => <Spin size="large" tip="Загружаем…" />;
+
+  renderInfo = (title, info) => <Alert className="alert-box" message={title} description={info} type="info" showIcon />;
+
   render() {
-    const { error } = this.props;
-    const { movies, isLoading, founded, errorSearch, page, onBoarding } = this.state;
+    const { tab } = this.props;
+    const { movies, rated, isLoading, founded, error, page, onBoarding } = this.state;
 
-    const welcomeBox = onBoarding? (
-      <Alert className="alert-box" message="Movies App"
-        description="Приложение ищет фильмы по запросу. Поисковый запрос должен содержать как минимум 2 символа."
-        type="info" showIcon
-      />
-    ) : null;
+    const infoMsg = onBoarding
+      ? this.renderInfo(
+          tab === 1 ? 'Приложение Movies' : 'Фильмы, которые вы оценили',
+          tab === 1
+            ? 'Введите что-нибудь в поле ввода и мы попробуем найти подходящие фильмы (минимум 2 символа)'
+            : `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`
+        )
+      : null;
 
-    const errorBox = error || errorSearch ? (
-      <Alert className="alert-box" message="Error" description={error || errorSearch} type="error" showIcon />
-    ) : null;
+    const errorRender = error && tab === 1? this.renderError(error) : this.renderInfo('Фильмы, которые вы оценили', error);
+    const errorMsg = error ? errorRender : null;
+    const loadMsg = isLoading ? this.renderLoad() : null;
+    const pagerBox = founded && tab === 1? this.renderPager(page, founded) : null;
 
-    const loadBox = isLoading ? <Spin size="large" tip="Loading..." /> : null;
+    const moviesData = tab === 1? movies : rated;
 
     const moviesBox =
-      !error && !errorSearch && !isLoading && !onBoarding
-        ? movies.map((elem) => (<GenresConsumer key={`gc${elem.id}`}>
-            { (genres) => <MovieCard movie={elem} genres={genres} onRate={this.handleRate} /> }
-          </GenresConsumer>)
-        )
+      !error && !isLoading && !onBoarding
+        ? moviesData.map((elem) => (
+            <GenresConsumer key={`gc${elem.id}`}>
+              {(genres) => <MovieCard movie={elem} genres={genres} onRate={this.handleRate} />}
+            </GenresConsumer>
+          ))
         : null;
-
-    const pagination = founded ? (
-      <Pagination
-        onChange={(pageNum) => { this.handleSearch(pageNum) }}
-        current={page}
-        defaultPageSize={20}
-        showTitle={false}
-        showSizeChanger={false}
-        total={founded}
-        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-      />
-    ) : null;
 
     return (
       <>
+        {infoMsg}
+        {loadMsg}
+        {errorMsg}
         <Row gutter={[36, 36]} justify="space-around" className="movies-list">
-          {welcomeBox}
-          {loadBox}
-          {errorBox}
           {moviesBox}
         </Row>
-        {pagination}
+        {pagerBox}
       </>
     );
   }
 }
 
 SearchResults.defaultProps = {
-  error: false,
   query: '',
+  tab: 1,
 };
 
 SearchResults.propTypes = {
-  error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   query: PropTypes.string,
   mdb: PropTypes.instanceOf(TMDBService).isRequired,
+  tab: PropTypes.number,
 };
 
 export default SearchResults;
