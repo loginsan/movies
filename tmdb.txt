@@ -12,8 +12,9 @@ To build an image URL, you will need 3 pieces of data. The base_url, size and fi
 Simply combine them all and you will have a fully qualified URL. Here’s an example URL:
   https://image.tmdb.org/t/p/w500/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg
 
-
+linsykt@gmail.com 
 {page: 1, results: Array(20), total_pages: 72, total_results: 1439}
+IlyaLoginov B@zaFilmov
 
 App
   Tabs*
@@ -60,7 +61,7 @@ getSessionId = () => {
     }
   }
 
-
+error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 
 componentDidMount() {
     this.handleSearch = debounce(this.handleSearchFunc, 300);

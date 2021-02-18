@@ -19,7 +19,7 @@
 
 .attribution {
   padding-top: 1rem;
-  font-size: .6em;
+  font-size: .75em;
   color: #EEEEEE;
 }
 
@@ -28,20 +28,30 @@
 }
 
 .alert-box {
-  margin: 3rem 3rem 38rem;
+  margin: 3rem 12px;
   font-size: 2rem;
   text-align: left;
 }
+
 .ant-spin {
   display: block;
   padding: 3rem;
-  margin-bottom: 35rem;
+  margin-bottom: 5rem;
   margin-top: 5rem;
-  transform: scale(3);
+  transform: scale(2);
 }
 
 .ant-card-body {
   padding: 0 24px 0 0
+}
+
+.ant-tabs-tab {
+  margin: 0;
+  padding: 12px 16px;
+}
+
+.ant-row {
+  margin: 0 6px 0 -6px !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -72,4 +82,18 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@media screen and (min-width:1440px) {
+  .App {
+    width: 1010px;
+    box-sizing: border-box;
+    padding: 0 24px;
+  }
+
+  .search-form {
+    margin: 4px 12px 32px;
+  }
+
+
 }

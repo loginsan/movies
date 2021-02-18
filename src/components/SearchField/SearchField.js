@@ -6,17 +6,28 @@ export default class SearchField extends Component {
   constructor(props) {
     super(props);
     this.searchRef = React.createRef();
+    // console.log('constructor');
   }
 
   componentDidMount() {
     this.searchRef.current.focus();
+    // console.log('did mount');
   }
 
   render() {
     const { onChange, query } = this.props;
+    // console.log('render');
     return (
-      <form className="search-form" action="/">
-        <Input placeholder="Type to search…" value={query} className="search-field" onChange={(event) => onChange(event)} ref={this.searchRef} />
+      <form className="search-form" action="/" onSubmit={(event) => event.preventDefault()}>
+        <Input
+          placeholder="Type to search…"
+          value={query}
+          className="search-field"
+          onChange={onChange}
+          ref={this.searchRef}
+          // onFocus={() => console.log('focus')}
+          // onBlur={() => console.log('blur')}
+        />
       </form>
     );
   }

@@ -188,5 +188,7 @@
 
 }
 @media screen and (min-width:1440px) {
-  
+  .search-results--wrap {
+    padding: 0;
+  }
 }

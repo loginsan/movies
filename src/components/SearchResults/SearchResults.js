@@ -14,7 +14,6 @@ class SearchResults extends Component {
     error: false,
     founded: 0,
     movies: [],
-    rated: [],
     page: 1,
   };
 
@@ -23,7 +22,6 @@ class SearchResults extends Component {
     this.mdb = mdb;
     this.handleSearch = debounce(this.handleSearchFunc, 200);
     this.handleShowRated();
-    // this.setState({query: 'return'});
   }
 
   componentDidUpdate(prevProps) {
@@ -74,27 +72,27 @@ class SearchResults extends Component {
   };
 
   handleShowRated = () => {
-    this.setStateLoading();
+    // this.setStateLoading();
 
-    this.mdb
-      .getRatedMovies()
-      .then((res) => ({ rated: res.results, founded: res.total_results }))
-      .then(({ rated, founded }) => {
-        if (founded === 0) {
-          this.setState({
-            onBoarding: true,
-            isLoading: false,
-            error: `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`,
-          });
-        } else {
-          this.setState({
-            isLoading: false,
-            founded,
-            rated,
-          });
-        }
-      })
-      .catch(this.handleError);
+    // this.mdb
+    //   .getRatedMovies()
+    //   .then((res) => ({ rated: res.results, founded: res.total_results }))
+    //   .then(({ rated, founded }) => {
+    //     if (founded === 0) {
+    //       this.setState({
+    //         onBoarding: true,
+    //         isLoading: false,
+    //         error: `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`,
+    //       });
+    //     } else {
+    //       this.setState({
+    //         isLoading: false,
+    //         founded,
+    //         rated,
+    //       });
+    //     }
+    //   })
+    //   .catch(this.handleError);
   };
 
   setStateLoading = (pageNum = 1) => {
@@ -117,17 +115,11 @@ class SearchResults extends Component {
   };
 
 
-  handleRate = (id, rateValue) => {
-    this.mdb
-      .setMovieRate(id, rateValue)
-      .then((res) => {
-        if (res.status_code === 1) {
-          console.log('success rate');
-        }
-      })
-      .catch(this.handleError);
+  handleRate = async (id, rateValue) => {
+    const { onRate } = this.props;
+    onRate(id, rateValue);
+    // console.log(`rate: value ${rateValue}, status ${res.message}`);
   };
-
 
 
   renderPager = (curPage, totalResults) => (
@@ -152,14 +144,14 @@ class SearchResults extends Component {
 
   render() {
     const { tab } = this.props;
-    const { movies, rated, isLoading, founded, error, page, onBoarding } = this.state;
+    const { movies, isLoading, founded, error, page, onBoarding } = this.state;
 
     const infoMsg = onBoarding
       ? this.renderInfo(
           tab === 1 ? 'Приложение Movies' : 'Фильмы, которые вы оценили',
           tab === 1
             ? 'Введите что-нибудь в поле ввода и мы попробуем найти подходящие фильмы (минимум 2 символа)'
-            : `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`
+            : `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам!`
         )
       : null;
 
@@ -168,15 +160,18 @@ class SearchResults extends Component {
     const loadMsg = isLoading ? this.renderLoad() : null;
     const pagerBox = founded && tab === 1? this.renderPager(page, founded) : null;
 
-    const moviesData = tab === 1? movies : rated;
-
     const moviesBox =
       !error && !isLoading && !onBoarding
-        ? moviesData.map((elem) => (
-            <GenresConsumer key={`gc${elem.id}`}>
-              {(genres) => <MovieCard movie={elem} genres={genres} onRate={this.handleRate} />}
+        ? (
+            <GenresConsumer>
+            { 
+              ({ genres, rated }) => {
+                const moviesData = tab === 1? movies : rated.items;
+                return moviesData.map((elem) => <MovieCard key={`mc${elem.id}`} movie={elem} genres={genres} onRate={this.handleRate} />);
+              }
+            }
             </GenresConsumer>
-          ))
+          )
         : null;
 
     return (
@@ -202,6 +197,7 @@ SearchResults.propTypes = {
   query: PropTypes.string,
   mdb: PropTypes.instanceOf(TMDBService).isRequired,
   tab: PropTypes.number,
+  onRate: PropTypes.func.isRequired,
 };
 
 export default SearchResults;
