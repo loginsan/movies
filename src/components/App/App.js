@@ -88,13 +88,13 @@ class App extends Component {
             <TabPane tab="Search" key="1">
               <SearchField onChange={this.handleQueryChange} query={query} />
               <section className="search-results--wrap">
-                <SearchResults query={query} mdb={this.mdb} tab={1} onRate={this.handleRate} />
+                <SearchResults query={query} mdb={this.mdb} tab={1} onRate={this.handleRate} rated={rated} />
               </section>
             </TabPane>
 
             <TabPane tab="Rated" key="2">
               <section className="search-results--wrap">
-                <SearchResults query={query} mdb={this.mdb} tab={2} onRate={this.handleRate} />
+                <SearchResults query={query} mdb={this.mdb} tab={2} onRate={this.handleRate} rated={rated} />
               </section>
             </TabPane>
           </Tabs>
@@ -109,7 +109,7 @@ class App extends Component {
     // <SearchResults query={query} mdb={this.mdb} tab={1} />
 
     return (
-      <GenresProvider value={{ genres, guestSessionId, rated }}>
+      <GenresProvider value={{ genres, guestSessionId }}>
         <div className="App">
           {errorMsg}
           {loadingMsg}

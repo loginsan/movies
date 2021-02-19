@@ -25,9 +25,12 @@ class SearchResults extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { query } = this.props;
+    const { query, rated } = this.props;
     if (prevProps.query !== query) {
       this.handleSearch(1);
+    }
+    if (prevProps.rated !== rated) {
+      this.handleShowRated();
     }
   }
 
@@ -143,7 +146,7 @@ class SearchResults extends Component {
   renderInfo = (title, info) => <Alert className="alert-box" message={title} description={info} type="info" showIcon />;
 
   render() {
-    const { tab } = this.props;
+    const { tab, rated } = this.props;
     const { movies, isLoading, founded, error, page, onBoarding } = this.state;
 
     const infoMsg = onBoarding
@@ -164,8 +167,8 @@ class SearchResults extends Component {
       !error && !isLoading && !onBoarding
         ? (
             <GenresConsumer>
-            { 
-              ({ genres, rated }) => {
+            {
+              ({ genres }) => {
                 const moviesData = tab === 1? movies : rated.items;
                 return moviesData.map((elem) => <MovieCard key={`mc${elem.id}`} movie={elem} genres={genres} onRate={this.handleRate} />);
               }
@@ -198,6 +201,10 @@ SearchResults.propTypes = {
   mdb: PropTypes.instanceOf(TMDBService).isRequired,
   tab: PropTypes.number,
   onRate: PropTypes.func.isRequired,
+  rated: PropTypes.shape({
+    items: PropTypes.arrayOf(PropTypes.object),
+    total: PropTypes.number
+  }).isRequired
 };
 
 export default SearchResults;
