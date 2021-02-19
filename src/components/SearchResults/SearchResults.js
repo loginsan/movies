@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { PropTypes}  from 'prop-types';
-import { Row, Spin, Alert, Pagination } from 'antd';
+import { Row } from 'antd';
 import { debounce } from 'lodash';
+import { renderLoad, renderError, renderInfo, renderPager } from '../../subrenders';
 import MovieCard from '../MovieCard';
 import TMDBService from '../../services/TMDBService';
 import { GenresConsumer } from '../genres-context';
@@ -75,27 +76,12 @@ class SearchResults extends Component {
   };
 
   handleShowRated = () => {
-    // this.setStateLoading();
-
-    // this.mdb
-    //   .getRatedMovies()
-    //   .then((res) => ({ rated: res.results, founded: res.total_results }))
-    //   .then(({ rated, founded }) => {
-    //     if (founded === 0) {
-    //       this.setState({
-    //         onBoarding: true,
-    //         isLoading: false,
-    //         error: `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам! ☻`,
-    //       });
-    //     } else {
-    //       this.setState({
-    //         isLoading: false,
-    //         founded,
-    //         rated,
-    //       });
-    //     }
-    //   })
-    //   .catch(this.handleError);
+    const { rated } = this.props;
+    if (rated.total > 0) {
+      this.setState({
+        onBoarding: false,
+      })
+    }
   };
 
   setStateLoading = (pageNum = 1) => {
@@ -121,54 +107,22 @@ class SearchResults extends Component {
   handleRate = async (id, rateValue) => {
     const { onRate } = this.props;
     onRate(id, rateValue);
-    // console.log(`rate: value ${rateValue}, status ${res.message}`);
   };
-
-
-  renderPager = (curPage, totalResults) => (
-    <Pagination
-      onChange={this.handleSearchFunc}
-      current={curPage}
-      defaultPageSize={20}
-      showTitle={false}
-      showSizeChanger={false}
-      total={totalResults}
-      showTotal={(total, range) => `${range[0]}-${range[1]} из ${total} найденых`}
-    />
-  );
-
-  renderError = (msg) => (
-    <Alert className="alert-box" message="Что-то пошло не так…" description={msg} type="error" showIcon />
-  );
-
-  renderLoad = () => <Spin size="large" tip="Загружаем…" />;
-
-  renderInfo = (title, info) => <Alert className="alert-box" message={title} description={info} type="info" showIcon />;
 
   render() {
     const { tab, rated } = this.props;
     const { movies, isLoading, founded, error, page, onBoarding } = this.state;
 
-    const infoMsg = onBoarding
-      ? this.renderInfo(
-          tab === 1 ? 'Приложение Movies' : 'Фильмы, которые вы оценили',
-          tab === 1
-            ? 'Введите что-нибудь в поле ввода и мы попробуем найти подходящие фильмы (минимум 2 символа)'
-            : `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам!`
-        )
-      : null;
-
-    const errorRender = error && tab === 1? this.renderError(error) : this.renderInfo('Фильмы, которые вы оценили', error);
-    const errorMsg = error ? errorRender : null;
-    const loadMsg = isLoading ? this.renderLoad() : null;
-    const pagerBox = founded && tab === 1? this.renderPager(page, founded) : null;
+    const infoMsg = renderInfo(onBoarding, tab);
+    const errorMsg = tab === 1? renderError(error) : renderInfo(error, 2);
+    const pagerBox = founded && tab === 1 ? renderPager(page, founded, this.handleSearch) : null;
 
     const moviesBox =
       !error && !isLoading && !onBoarding
         ? (
             <GenresConsumer>
             {
-              ({ genres }) => {
+              (genres) => {
                 const moviesData = tab === 1? movies : rated.items;
                 return moviesData.map((elem) => <MovieCard key={`mc${elem.id}`} movie={elem} genres={genres} onRate={this.handleRate} />);
               }
@@ -180,8 +134,8 @@ class SearchResults extends Component {
     return (
       <>
         {infoMsg}
-        {loadMsg}
-        {errorMsg}
+        { renderLoad(isLoading) }
+        { errorMsg }
         <Row gutter={[36, 36]} justify="space-around" className="movies-list">
           {moviesBox}
         </Row>

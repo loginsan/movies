@@ -50,7 +50,10 @@ export default class TMDBService {
     const res = await this.ask('/authentication/guest_session/new');
     if (res.success) {
       this.guestSessionId = res.guest_session_id;
-      return res.guest_session_id;
+      return {
+        id: res.guest_session_id,
+        expires: res.expires_at
+      };
     }
     return null;
     // { "success": true, "guest_session_id": "1ce82ec1223641636ad4a60b07de3581", "expires_at": "2016-08-27 16:26:40 UTC" }

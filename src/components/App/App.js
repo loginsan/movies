@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
-import { Tabs, Alert, Spin } from 'antd';
+import { Tabs } from 'antd';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
-import 'antd/dist/antd.css';
-import './App.css';
+import { renderLoad, renderError } from '../../subrenders';
 import TMDBService from '../../services/TMDBService';
 import { GenresProvider } from '../genres-context';
+import 'antd/dist/antd.css';
+import './App.css';
 
 
 class App extends Component {
@@ -16,7 +17,7 @@ class App extends Component {
       error: false,
       loading: true,
       genres: [],
-      guestSessionId: null,
+      // guestSessionId: null,
       rated: {},
       query: '',
     };
@@ -30,13 +31,13 @@ class App extends Component {
   initApp = async () => {
     try {
       const genres = await this.mdb.getGenresList();
-      const gsId = await this.mdb.getGuestSession();
-      const ratedFilms = await this.mdb.getRatedMovies(gsId);
+      const session = await this.mdb.getGuestSession();
+      const ratedFilms = await this.mdb.getRatedMovies(session.id);
       this.setState({
         error: false,
         loading: false,
         genres,
-        guestSessionId: gsId,
+        // guestSessionId: session.id,
         rated: ratedFilms,
       });
     } catch (err) {
@@ -52,9 +53,7 @@ class App extends Component {
   };
 
   handleTabChange = (key) => {
-    this.setState = {
-      activeTab: key,
-    };
+    this.setState({ activeTab: key });
   };
 
   handleRate = async (id, rateValue) => {
@@ -66,24 +65,13 @@ class App extends Component {
     });
   };
 
-  renderError = (msg) => (
-    <Alert className="alert-box" message="Что-то пошло не так…" description={msg} type="error" showIcon />
-  );
-
-  renderLoad = (tip = 'Загружаем…') => <Spin size="large" tip={tip} />;
-
-  renderInfo = (title, info) => <Alert className="alert-box" message={title} description={info} type="info" showIcon />;
-
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, error, loading, genres, guestSessionId, rated, query } = this.state;
-
-    const errorMsg = error ? this.renderError(error) : null;
-    const loadingMsg = loading ? this.renderLoad('Стартуем приложение, загружаем данные…') : null;
+    const { activeTab, error, loading, genres, rated, query } = this.state;
 
     const searchResults =
       error || loading ? null : (
-        <section className="search-results--wrap">
+        <div className="tabs-wrap">
           <Tabs defaultActiveKey="1" onChange={this.handleTabChange} className="Tabs">
             <TabPane tab="Search" key="1">
               <SearchField onChange={this.handleQueryChange} query={query} />
@@ -98,21 +86,14 @@ class App extends Component {
               </section>
             </TabPane>
           </Tabs>
-        </section>
+        </div>
       );
 
-    // const ratedResults = error ? null : (
-    //  <section className="search-results--wrap">
-    //    <SearchResults query={query} mdb={this.mdb} tab={2} />
-    //  </section>
-    // );
-    // <SearchResults query={query} mdb={this.mdb} tab={1} />
-
     return (
-      <GenresProvider value={{ genres, guestSessionId }}>
+      <GenresProvider value={genres}>
         <div className="App">
-          {errorMsg}
-          {loadingMsg}
+          { renderError(error) }
+          { renderLoad(loading, 'Стартуем приложение, загружаем данные…') }
           {searchResults}
 
           <p className="attribution" title={activeTab}>

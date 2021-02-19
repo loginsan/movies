@@ -14,7 +14,6 @@ class MovieCard extends Component {
   componentDidMount() {
     const { movie } = this.props;
     const rateValue = this.getRateFromStorage(movie.id);
-    // if (rateValue !== 0) console.log(rateValue, typeof rateValue);
     if (rateValue !== 0) {
       this.setState({ rate: rateValue });
     }
@@ -36,8 +35,8 @@ class MovieCard extends Component {
   };
 
   buildImg = (pp, bp) => {
-    const noposter = './noposter.svg';
-    return pp || bp ? `https://image.tmdb.org/t/p/w185${pp || bp}` : noposter;
+    const nop = './noposter.svg';
+    return pp || bp ? `https://image.tmdb.org/t/p/w185${pp || bp}` : nop;
   };
 
   buildCard = (data) => ({
@@ -49,6 +48,7 @@ class MovieCard extends Component {
     posterSrc: this.buildImg(data.poster_path, data.backdrop_path),
     releaseDate: isValid(new Date(data.release_date)) ? new Date(data.release_date) : new Date(),
     voteAverage: data.vote_average,
+    rating: data.rating? data.rating : 0,
   });
 
   handleRateChange = (id, value) => {
@@ -61,7 +61,7 @@ class MovieCard extends Component {
   render() {
     const { movie } = this.props;
     const { rate } = this.state;
-    const { id, title, originalTitle, overview, genres, posterSrc, releaseDate, voteAverage } = this.buildCard(movie);
+    const { id, title, originalTitle, overview, genres, posterSrc, releaseDate, voteAverage, rating } = this.buildCard(movie);
     return (
       <Col span={12} xs={24} sm={12} lg={12} xl={12}>
         <Card title="" bordered={false} className="movie">
@@ -80,7 +80,7 @@ class MovieCard extends Component {
             {voteAverage}
           </div>
           <div className="movie--rate">
-            <Rate count="10" allowHalf value={rate} onChange={(value) => this.handleRateChange(id, value)} />
+            <Rate count="10" allowHalf value={rating || rate} disabled={rating || rate} onChange={(value) => this.handleRateChange(id, value)} />
           </div>
         </Card>
       </Col>
