@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import { PropTypes}  from 'prop-types';
 import { Row } from 'antd';
 import { debounce } from 'lodash';
-import { renderLoad, renderError, renderInfo, renderPager } from '../../subrenders';
 import MovieCard from '../MovieCard';
+import { renderLoad, renderError, renderInfo, renderPager } from '../../subrenders';
 import TMDBService from '../../services/TMDBService';
-import { GenresConsumer } from '../genres-context';
+import { GenresConsumer } from '../../genres-context';
 
 
 class SearchResults extends Component {
@@ -19,50 +19,57 @@ class SearchResults extends Component {
   };
 
   componentDidMount() {
-    const { mdb } = this.props;
+    const { tab, mdb } = this.props;
     this.mdb = mdb;
-    this.handleSearch = debounce(this.handleSearchFunc, 200);
-    this.handleShowRated();
+    if (tab === 1) this.handleSearch = debounce(this.handleSearchFunc, 200);
+    if (tab === 2) this.handleShowRated();
   }
 
   componentDidUpdate(prevProps) {
-    const { query, rated } = this.props;
-    if (prevProps.query !== query) {
+    const { tab, query, rated } = this.props;
+    if (tab === 1 && prevProps.query !== query) {
       this.handleSearch(1);
     }
-    if (prevProps.rated !== rated) {
+    if (tab === 2 && prevProps.rated !== rated) {
       this.handleShowRated();
     }
   }
 
   handleSearchFunc = (pageNum) => {
     const { query } = this.props;
-
     if (query.length < 2) {
       this.setStateInfo();
       return;
     }
 
     this.setStateLoading(pageNum);
-
     this.mdb
       .getMoviesPage(query, pageNum)
-      .then((res) => ({ movies: res.results, founded: res.total_results }))
-      .then(({ movies, founded }) => {
+      .then(res => ({ movies: res.results, founded: res.total_results }) )
+      .then( ({ movies, founded }) => {
+        const searchState = { isLoading: false, founded };
         if (founded === 0) {
-          this.setState({
-            isLoading: false,
-            founded: 0,
-            error: `Не найдено фильмов по фразе '${query}'`,
-            page: 1,
-          });
+          searchState.error = `Не найдено фильмов по фразе '${query}'`;
+          searchState.page = 1;
         } else {
-          this.setState({
-            isLoading: false,
-            founded,
-            movies,
-          });
+          searchState.movies = movies;
         }
+        this.setState(searchState);
+
+        // if (founded === 0) {
+        //   this.setState({
+        //     isLoading: false,
+        //     founded: 0,
+        //     error: `Не найдено фильмов по фразе '${query}'`,
+        //     page: 1,
+        //   });
+        // } else {
+        //   this.setState({
+        //     isLoading: false,
+        //     founded,
+        //     movies,
+        //   });
+        // }
       })
       .catch(this.handleError);
   };
@@ -103,10 +110,9 @@ class SearchResults extends Component {
     });
   };
 
-
-  handleRate = async (id, rateValue) => {
+  handleRate = (id, rateValue) => {
     const { onRate } = this.props;
-    onRate(id, rateValue);
+    return onRate(id, rateValue);
   };
 
   render() {

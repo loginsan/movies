@@ -28,7 +28,7 @@ export default class TMDBService {
       const body = await res.json();
       return body;
     } catch (err) {
-      throw new Error('Could not connect to remote site. Check you internet connection or try again later.');
+      throw new Error(err.message);
       // 'Could not connect to remote site. Check you internet connection or try again later.'
     }
   }
@@ -56,19 +56,25 @@ export default class TMDBService {
       };
     }
     return null;
-    // { "success": true, "guest_session_id": "1ce82ec1223641636ad4a60b07de3581", "expires_at": "2016-08-27 16:26:40 UTC" }
   }
 
   getRatedMovies = async (gsId) => {
-    const res = await this.ask(`/guest_session/${gsId}/rated/movies`);
-    return { 
-      items: res.results, 
-      total: res.total_results 
-    };
+    try {
+      const res = await this.ask(`/guest_session/${gsId}/rated/movies`);
+      return {
+        owner: gsId,
+        items: res.results,
+        total: res.total_results,
+      };
+    } catch (err) {
+      throw new Error(err.message);
+    }
+    
   }
 
   setMovieRate = async (movieId, rateValue) => {
     const data = { value: rateValue };
+    // console.log(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
     const res = await this.ask(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`, data);
     return {
       code: res.status_code,

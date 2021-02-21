@@ -1,0 +1,9 @@
+.search-form {
+  margin: 4px 36px 32px;
+}
+
+@media screen and (min-width:1440px) {
+  .search-form {
+    margin: 4px 12px 32px;
+  }
+}

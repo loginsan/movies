@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { PropTypes } from 'prop-types';
 import { Card, Col, Rate } from 'antd';
 import { isValid, format } from 'date-fns';
-import { truncate, rateClass } from '../../services/helpers';
+import { truncate, rateClass } from '../../helpers';
 import './MovieCard.css';
 
 
@@ -12,21 +12,21 @@ class MovieCard extends Component {
   };
 
   componentDidMount() {
-    const { movie } = this.props;
-    const rateValue = this.getRateFromStorage(movie.id);
-    if (rateValue !== 0) {
-      this.setState({ rate: rateValue });
-    }
+    // const { movie } = this.props;
+    // const rateValue = this.getRateFromStorage(movie.id);
+    // if (rateValue !== 0) {
+    //   this.setState({ rate: rateValue });
+    // }
   }
 
-  saveRateToStorage = (id, value) => {
-    localStorage.setItem(`movie${id}-rate`, value);
-  };
+  // saveRateToStorage = (id, value) => {
+  //   localStorage.setItem(`movie${id}-rate`, value);
+  // };
 
-  getRateFromStorage = (id) => {
-    const movieRate = localStorage.getItem(`movie${id}-rate`);
-    return parseFloat(movieRate) || 0;
-  };
+  // getRateFromStorage = (id) => {
+  //   const movieRate = localStorage.getItem(`movie${id}-rate`);
+  //   return parseFloat(movieRate) || 0;
+  // };
 
   nameGenre = (id) => {
     const { genres } = this.props;
@@ -53,9 +53,11 @@ class MovieCard extends Component {
 
   handleRateChange = (id, value) => {
     const { onRate } = this.props;
-    this.setState({ rate: value });
-    this.saveRateToStorage(id, value);
-    onRate(id, value);
+    const success = onRate(id, value);
+    if (success) {
+      this.setState({ rate: value });
+    }
+    // this.saveRateToStorage(id, value);
   };
 
   render() {

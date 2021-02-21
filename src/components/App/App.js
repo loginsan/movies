@@ -4,7 +4,7 @@ import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 import { renderLoad, renderError } from '../../subrenders';
 import TMDBService from '../../services/TMDBService';
-import { GenresProvider } from '../genres-context';
+import { GenresProvider } from '../../genres-context';
 import 'antd/dist/antd.css';
 import './App.css';
 
@@ -17,7 +17,6 @@ class App extends Component {
       error: false,
       loading: true,
       genres: [],
-      // guestSessionId: null,
       rated: {},
       query: '',
     };
@@ -30,14 +29,13 @@ class App extends Component {
 
   initApp = async () => {
     try {
-      const genres = await this.mdb.getGenresList();
-      const session = await this.mdb.getGuestSession();
-      const ratedFilms = await this.mdb.getRatedMovies(session.id);
+      const genres = await this.initGenres();
+      const session = await this.initSession();
+      const ratedFilms = await this.initRated(session.id);
+      // console.log(this.mdb.guestSessionId, session.id);
       this.setState({
-        error: false,
         loading: false,
         genres,
-        // guestSessionId: session.id,
         rated: ratedFilms,
       });
     } catch (err) {
@@ -48,21 +46,63 @@ class App extends Component {
     }
   };
 
+  initGenres = async () => {
+    const savedGenres = localStorage.getItem('genres');
+    if (savedGenres === null) {
+      const genres = await this.mdb.getGenresList();
+      localStorage.setItem('genres', JSON.stringify(genres));
+      return genres;
+    }
+    return JSON.parse(savedGenres);
+  };
+
+  initSession = async () => {
+    // const savedSession = localStorage.getItem('session');
+    // if (savedSession !== null) {
+    //   const session = JSON.parse(savedSession);
+    //   if (new Date(session.expires) > Date.now()) {
+    //     this.mdb.guestSessionId = session.id;
+    //     return session;
+    //   }
+    // }
+    const newSession = await this.mdb.getGuestSession();
+    // localStorage.setItem('session', JSON.stringify(newSession));
+    return newSession;
+  };
+
+  initRated = async (gsId) => {
+    // const savedRated = localStorage.getItem('rated');
+    // if (savedRated !== null) {
+    //   const rated = JSON.parse(savedRated);
+    //   if (rated.owner === gsId) {
+    //     return rated;
+    //   }
+    // }
+    const newRated = await this.mdb.getRatedMovies(gsId);
+    // localStorage.setItem('rated', JSON.stringify(newRated));
+    return newRated;
+  };
+
   handleQueryChange = (event) => {
     this.setState({ query: event.target.value });
   };
 
-  handleTabChange = (key) => {
+  handleTabChange = async (key) => {
+    // console.log(key, typeof key);
     this.setState({ activeTab: key });
+    if (key === "2") {
+      const rated = await this.mdb.getRatedMovies(this.mdb.guestSessionId);
+      // localStorage.setItem('rated', JSON.stringify(rated));
+      // console.log(`rated total: ${rated.total}, owner: ${rated.owner}`);
+      this.setState({ rated });
+    }
   };
 
   handleRate = async (id, rateValue) => {
+    // console.log(this.mdb.guestSessionId);
     const res = await this.mdb.setMovieRate(id, rateValue);
-    const ratedFilms = await this.mdb.getRatedMovies(this.mdb.guestSessionId);
-    console.log(`rate: value ${rateValue}, status ${res.message}`);
-    this.setState({
-      rated: ratedFilms,
-    });
+    // console.log(`handleRate: ${res.code}`);
+    return (res.code === 1);
   };
 
   render() {
@@ -76,13 +116,13 @@ class App extends Component {
             <TabPane tab="Search" key="1">
               <SearchField onChange={this.handleQueryChange} query={query} />
               <section className="search-results--wrap">
-                <SearchResults query={query} mdb={this.mdb} tab={1} onRate={this.handleRate} rated={rated} />
+                <SearchResults tab={1} query={query} mdb={this.mdb} onRate={this.handleRate} rated={rated} />
               </section>
             </TabPane>
 
             <TabPane tab="Rated" key="2">
               <section className="search-results--wrap">
-                <SearchResults query={query} mdb={this.mdb} tab={2} onRate={this.handleRate} rated={rated} />
+                <SearchResults tab={2} query={query} mdb={this.mdb} onRate={this.handleRate} rated={rated} />
               </section>
             </TabPane>
           </Tabs>
@@ -92,8 +132,8 @@ class App extends Component {
     return (
       <GenresProvider value={genres}>
         <div className="App">
-          { renderError(error) }
-          { renderLoad(loading, 'Стартуем приложение, загружаем данные…') }
+          {renderError(error)}
+          {renderLoad(loading, 'Стартуем приложение, загружаем данные…')}
           {searchResults}
 
           <p className="attribution" title={activeTab}>
