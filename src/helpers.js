@@ -1,4 +1,3 @@
-const TEST = 'Kind of magic';
 
 export function truncate(limit) {
   if (this.length <= limit) {
@@ -30,4 +29,6 @@ export function sessionExpired(expiredAt) {
   return now > exp.getTime();
 }
 
-export default TEST;
+export const appTabs = {Search: '1', Rated: '2'};
+
+export default truncate;

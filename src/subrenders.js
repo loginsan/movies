@@ -1,20 +1,35 @@
 import React from 'react';
 import { Alert, Spin, Pagination } from 'antd';
+import { PropTypes } from 'prop-types';
+import { appTabs } from './helpers';
 
 
-export const renderError = (error) => error ? (
-  <Alert className="alert-box" message="Что-то пошло не так…" description={error} type="error" showIcon />
-) : null;
+const Message = ({ title, text, type }) => (
+  <Alert className="alert-box" message={title} description={text} type={type} showIcon />
+);
 
-export const renderLoad = (isLoading, tip = 'Загружаем…') => isLoading? <Spin size="large" tip={tip} /> : null;
+export const ratedMessage = () => (
+  <Message
+    title="Фильмы, которые вы оценили"
+    text="Нажав на карточку фильма можно удалить оценку и сам фильм из списка оцененных"
+    type="info"
+  />
+);
 
-export const renderInfo = (flag, mode) => {
+export const renderError = (error) => error && (
+  <Message title="Что-то пошло не так…" text={error} type="error" />
+);
+
+export const renderLoad = (isLoading, tip = 'Загружаем…') => isLoading && <Spin size="large" tip={tip} />;
+
+export const renderInfo = (flag, tab) => {
   if (!flag) return null;
-  const tt = mode === 1 ? 'Приложение Movies' : 'Фильмы, которые вы оценили';
-  const info = mode === 1
-    ? 'Введите что-нибудь в поле ввода и мы попробуем найти подходящие фильмы (минимум 2 символа)'
-    : `Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам!`;
-  return <Alert className="alert-box" message={tt} description={info} type="info" showIcon />
+  const title = { [appTabs.Search]: 'Приложение Movies', [appTabs.Rated]: 'Фильмы, которые вы оценили' };
+  const info = { 
+    [appTabs.Search]: 'Введите что-нибудь в поле ввода и мы попробуем найти подходящие фильмы (минимум 2 символа)',
+    [appTabs.Rated]: 'Пока у вас нет оценённых фильмов. Бегом на вкладку Search искать и ставить оценки фильмам!'
+  };
+  return <Message title={ title[tab] } text={ info[tab] } type="info" />;
 };
 
 export const renderPager = (curPage, totalResults, handleChange) => (
@@ -28,3 +43,15 @@ export const renderPager = (curPage, totalResults, handleChange) => (
     showTotal={(total, range) => `${range[0]}-${range[1]} из ${total} найденых`}
   />
 );
+
+Message.defaultProps = {
+  title: 'Приложение Movies',
+  text: 'Что-то пошло не так…',
+  type: 'error',
+};
+
+Message.propTypes = {
+  title: PropTypes.string,
+  text: PropTypes.string,
+  type: PropTypes.string,
+};

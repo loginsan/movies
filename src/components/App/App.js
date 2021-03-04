@@ -3,6 +3,7 @@ import { Tabs } from 'antd';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 import { renderLoad, renderError } from '../../subrenders';
+import { appTabs } from '../../helpers';
 import TMDBService from '../../services/TMDBService';
 import { GenresProvider } from '../../genres-context';
 import 'antd/dist/antd.css';
@@ -12,8 +13,10 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
+    this.searchListRef = React.createRef();
+    this.ratedListRef = React.createRef();
     this.state = {
-      activeTab: 1,
+      activeTab: appTabs.Search,
       error: false,
       loading: true,
       genres: [],
@@ -32,7 +35,6 @@ class App extends Component {
       const genres = await this.initGenres();
       const session = await this.initSession();
       const ratedFilms = await this.initRated(session.id);
-      // console.log(this.mdb.guestSessionId, session.id);
       this.setState({
         loading: false,
         genres,
@@ -46,40 +48,30 @@ class App extends Component {
     }
   };
 
+  genresMap = (genres) => {
+    const map = new Map();
+    genres.forEach(elem => { map.set(elem.id, elem.name) });
+    return map;
+  }
+
   initGenres = async () => {
     const savedGenres = localStorage.getItem('genres');
     if (savedGenres === null) {
       const genres = await this.mdb.getGenresList();
       localStorage.setItem('genres', JSON.stringify(genres));
+      console.log(Array.from(this.genresMap(genres)));
       return genres;
     }
     return JSON.parse(savedGenres);
   };
 
   initSession = async () => {
-    // const savedSession = localStorage.getItem('session');
-    // if (savedSession !== null) {
-    //   const session = JSON.parse(savedSession);
-    //   if (new Date(session.expires) > Date.now()) {
-    //     this.mdb.guestSessionId = session.id;
-    //     return session;
-    //   }
-    // }
     const newSession = await this.mdb.getGuestSession();
-    // localStorage.setItem('session', JSON.stringify(newSession));
     return newSession;
   };
 
   initRated = async (gsId) => {
-    // const savedRated = localStorage.getItem('rated');
-    // if (savedRated !== null) {
-    //   const rated = JSON.parse(savedRated);
-    //   if (rated.owner === gsId) {
-    //     return rated;
-    //   }
-    // }
     const newRated = await this.mdb.getRatedMovies(gsId);
-    // localStorage.setItem('rated', JSON.stringify(newRated));
     return newRated;
   };
 
@@ -88,21 +80,29 @@ class App extends Component {
   };
 
   handleTabChange = async (key) => {
-    // console.log(key, typeof key);
     this.setState({ activeTab: key });
-    if (key === "2") {
+    if (key === appTabs.Rated) {
       const rated = await this.mdb.getRatedMovies(this.mdb.guestSessionId);
-      // localStorage.setItem('rated', JSON.stringify(rated));
-      // console.log(`rated total: ${rated.total}, owner: ${rated.owner}`);
       this.setState({ rated });
     }
   };
 
   handleRate = async (id, rateValue) => {
-    // console.log(this.mdb.guestSessionId);
     const res = await this.mdb.setMovieRate(id, rateValue);
-    // console.log(`handleRate: ${res.code}`);
     return (res.code === 1);
+  };
+
+  handleUnrate = async (id) => {
+    const res = await this.mdb.deleteRating(id);
+    if (res.code === 13) {
+      this.setState(({ rated }) => ({
+        rated: {
+          items: rated.items.filter((elem) => elem.id !== id),
+          total: rated.total - 1,
+        },
+      }));
+      this.searchListRef.current.handleRefresh();
+    }
   };
 
   render() {
@@ -112,17 +112,33 @@ class App extends Component {
     const searchResults =
       error || loading ? null : (
         <div className="tabs-wrap">
-          <Tabs defaultActiveKey="1" onChange={this.handleTabChange} className="Tabs">
-            <TabPane tab="Search" key="1">
+          <Tabs defaultActiveKey={appTabs.Search} onChange={this.handleTabChange} className="Tabs">
+            <TabPane tab="Search" key={appTabs.Search}>
               <SearchField onChange={this.handleQueryChange} query={query} />
               <section className="search-results--wrap">
-                <SearchResults tab={1} query={query} mdb={this.mdb} onRate={this.handleRate} rated={rated} />
+                <SearchResults
+                  tab={appTabs.Search}
+                  query={query}
+                  mdb={this.mdb}
+                  onRate={this.handleRate}
+                  onUnrate={this.handleUnrate}
+                  rated={rated}
+                  ref={this.searchListRef}
+                />
               </section>
             </TabPane>
 
-            <TabPane tab="Rated" key="2">
+            <TabPane tab="Rated" key={appTabs.Rated}>
               <section className="search-results--wrap">
-                <SearchResults tab={2} query={query} mdb={this.mdb} onRate={this.handleRate} rated={rated} />
+                <SearchResults
+                  tab={appTabs.Rated}
+                  query={query}
+                  mdb={this.mdb}
+                  onRate={this.handleRate}
+                  onUnrate={this.handleUnrate}
+                  rated={rated}
+                  ref={this.ratedListRef}
+                />
               </section>
             </TabPane>
           </Tabs>

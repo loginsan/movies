@@ -1,29 +1,26 @@
 
 export default class TMDBService {
+
   base = 'https://api.themoviedb.org/3';
 
-  apiLK = '51e27be0d3b2745e';
+  endURL(endpoint, params = '') {
+    return `${this.base}${endpoint}?api_key=${process.env.REACT_APP_API_KEY}${params}`;
+  }
 
-  apiRK = 'cf2d11a387d3398b';
-
-  key = '51e27be0d3b2745ecf2d11a387d3398b'; // `${this.apiLK}${this.apiRK}`;
-
-  async ask(url, params = '', value = null) {
-    const path = `${this.base}${url}?api_key=${this.key}${params}`;
-    const data =
-      value === null
-        ? {}
-        : {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json;charset=utf-8',
-            },
-            body: JSON.stringify(value),
-          };
+  async ask(url, method = 'get', value = null) {
+    const data = {}
+    if (method === 'post') {
+      data.method = 'POST';
+      data.headers = {'Content-Type': 'application/json;charset=utf-8'};
+      data.body = JSON.stringify(value);
+    }
+    if (method === 'delete') {
+      data.method = 'DELETE';
+    }
     try {
-      const res = await fetch(path, data);
+      const res = await fetch(url, data);
       if (!res.ok) {
-        throw new Error(`Could not fetch ${url}, received ${res.status}`);
+        throw new Error(`Could not fetch API request, received ${res.status}`);
       }
       const body = await res.json();
       return body;
@@ -34,20 +31,24 @@ export default class TMDBService {
   }
 
   getMoviesPage(query, page) {
-    return this.ask(`/search/movie`, `&query=${query}&page=${page}`);
+    const url = this.endURL('/search/movie', `&query=${query}&page=${page}&include_adult=false`);
+    return this.ask(url);
   }
 
   getConfiguration() {
-    return this.ask(`/configuration`);
+    const url = this.endURL('/configuration');
+    return this.ask(url);
   }
 
   getGenresList = async ()  => {
-    const res = await this.ask('/genre/movie/list');
+    const url = this.endURL('/genre/movie/list');
+    const res = await this.ask(url);
     return res.genres;
   }
 
   getGuestSession = async () => {
-    const res = await this.ask('/authentication/guest_session/new');
+    const url = this.endURL('/authentication/guest_session/new');
+    const res = await this.ask(url);
     if (res.success) {
       this.guestSessionId = res.guest_session_id;
       return {
@@ -59,8 +60,9 @@ export default class TMDBService {
   }
 
   getRatedMovies = async (gsId) => {
+    const url = this.endURL(`/guest_session/${gsId}/rated/movies`);
     try {
-      const res = await this.ask(`/guest_session/${gsId}/rated/movies`);
+      const res = await this.ask(url);
       return {
         owner: gsId,
         items: res.results,
@@ -73,14 +75,21 @@ export default class TMDBService {
   }
 
   setMovieRate = async (movieId, rateValue) => {
-    const data = { value: rateValue };
-    // console.log(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
-    const res = await this.ask(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`, data);
+    const url = this.endURL(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
+    const res = await this.ask(url, 'post', { value: rateValue });
     return {
-      code: res.status_code,
-      message: res.status_message
+      code: res.status_code, // { "status_code": 1, "status_message": "Success." }
+      message: res.status_message,
     }
-    // { "status_code": 1, "status_message": "Success." }
+  }
+
+  deleteRating = async (movieId) => {
+    const url = this.endURL(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
+    const res = await this.ask(url, 'delete');
+    return {
+      code: res.status_code, // 13
+      message: res.status_message,
+    }
   }
 }
 

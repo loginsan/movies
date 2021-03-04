@@ -4,8 +4,8 @@ import { Input } from 'antd';
 import './SearchField.css';
 
 export default class SearchField extends Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.searchRef = React.createRef();
   }
 
@@ -23,6 +23,7 @@ export default class SearchField extends Component {
           className="search-field"
           onChange={onChange}
           ref={this.searchRef}
+          tabIndex="0"
         />
       </form>
     );
