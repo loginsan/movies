@@ -1,17 +1,17 @@
 
 export default class TMDBService {
 
-  base = 'https://api.themoviedb.org/3';
+  base = process.env.REACT_APP_API_URL;
 
   endURL(endpoint, params = '') {
     return `${this.base}${endpoint}?api_key=${process.env.REACT_APP_API_KEY}${params}`;
   }
 
   async ask(url, method = 'get', value = null) {
-    const data = {}
+    const data = {};
     if (method === 'post') {
       data.method = 'POST';
-      data.headers = {'Content-Type': 'application/json;charset=utf-8'};
+      data.headers = { 'Content-Type': 'application/json;charset=utf-8' };
       data.body = JSON.stringify(value);
     }
     if (method === 'delete') {
@@ -25,13 +25,13 @@ export default class TMDBService {
       const body = await res.json();
       return body;
     } catch (err) {
-      throw new Error(err.message);
+      throw new Error(err);
       // 'Could not connect to remote site. Check you internet connection or try again later.'
     }
   }
 
   getMoviesPage(query, page) {
-    const url = this.endURL('/search/movie', `&query=${query}&page=${page}&include_adult=false`);
+    const url = this.endURL('/search/movie', `&query=${query}&page=${page}`);
     return this.ask(url);
   }
 
@@ -40,11 +40,11 @@ export default class TMDBService {
     return this.ask(url);
   }
 
-  getGenresList = async ()  => {
+  getGenresList = async () => {
     const url = this.endURL('/genre/movie/list');
     const res = await this.ask(url);
     return res.genres;
-  }
+  };
 
   getGuestSession = async () => {
     const url = this.endURL('/authentication/guest_session/new');
@@ -53,11 +53,11 @@ export default class TMDBService {
       this.guestSessionId = res.guest_session_id;
       return {
         id: res.guest_session_id,
-        expires: res.expires_at
+        expires: res.expires_at,
       };
     }
     return null;
-  }
+  };
 
   getRatedMovies = async (gsId) => {
     const url = this.endURL(`/guest_session/${gsId}/rated/movies`);
@@ -71,8 +71,7 @@ export default class TMDBService {
     } catch (err) {
       throw new Error(err.message);
     }
-    
-  }
+  };
 
   setMovieRate = async (movieId, rateValue) => {
     const url = this.endURL(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
@@ -80,8 +79,8 @@ export default class TMDBService {
     return {
       code: res.status_code, // { "status_code": 1, "status_message": "Success." }
       message: res.status_message,
-    }
-  }
+    };
+  };
 
   deleteRating = async (movieId) => {
     const url = this.endURL(`/movie/${movieId}/rating`, `&guest_session_id=${this.guestSessionId}`);
@@ -89,8 +88,8 @@ export default class TMDBService {
     return {
       code: res.status_code, // 13
       message: res.status_message,
-    }
-  }
+    };
+  };
 }
 
-
+export const APIService = new TMDBService();

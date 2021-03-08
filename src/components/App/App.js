@@ -1,29 +1,28 @@
 import React, {Component} from 'react';
 import { Tabs } from 'antd';
-import SearchResults from '../SearchResults';
+import MovieList from '../MovieList';
 import SearchField from '../SearchField';
 import { renderLoad, renderError } from '../../subrenders';
 import { appTabs } from '../../helpers';
-import TMDBService from '../../services/TMDBService';
+import { APIService } from '../../services/TMDBService';
 import { GenresProvider } from '../../genres-context';
 import 'antd/dist/antd.css';
 import './App.css';
 
 
-class App extends Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
     this.searchListRef = React.createRef();
     this.ratedListRef = React.createRef();
     this.state = {
-      activeTab: appTabs.Search,
       error: false,
       loading: true,
       genres: [],
       rated: {},
       query: '',
     };
-    this.mdb = new TMDBService();
+    this.api = APIService;
   }
 
   componentDidMount() {
@@ -48,30 +47,23 @@ class App extends Component {
     }
   };
 
-  genresMap = (genres) => {
-    const map = new Map();
-    genres.forEach(elem => { map.set(elem.id, elem.name) });
-    return map;
-  }
-
   initGenres = async () => {
     const savedGenres = localStorage.getItem('genres');
     if (savedGenres === null) {
-      const genres = await this.mdb.getGenresList();
+      const genres = await this.api.getGenresList();
       localStorage.setItem('genres', JSON.stringify(genres));
-      console.log(Array.from(this.genresMap(genres)));
       return genres;
     }
     return JSON.parse(savedGenres);
   };
 
   initSession = async () => {
-    const newSession = await this.mdb.getGuestSession();
+    const newSession = await this.api.getGuestSession();
     return newSession;
   };
 
   initRated = async (gsId) => {
-    const newRated = await this.mdb.getRatedMovies(gsId);
+    const newRated = await this.api.getRatedMovies(gsId);
     return newRated;
   };
 
@@ -80,20 +72,36 @@ class App extends Component {
   };
 
   handleTabChange = async (key) => {
-    this.setState({ activeTab: key });
+    // this.setState({ activeTab: key });
     if (key === appTabs.Rated) {
-      const rated = await this.mdb.getRatedMovies(this.mdb.guestSessionId);
+      const rated = await this.api.getRatedMovies(this.api.guestSessionId);
       this.setState({ rated });
     }
   };
 
-  handleRate = async (id, rateValue) => {
-    const res = await this.mdb.setMovieRate(id, rateValue);
-    return (res.code === 1);
+  handleUpdate = async (query, pageNum) => {
+    const res = await this.api.getMoviesPage(query, pageNum);
+    return res
+  }
+
+  handleRate = async (id, movie, rateValue) => {
+    const res = await this.api.setMovieRate(id, rateValue);
+    const rmovie = movie;
+    if (res.code === 1) {
+      rmovie.rating = rateValue;
+      this.setState(({ rated }) => ({
+        rated: {
+          items: [...rated.items, rmovie],
+          total: rated.total + 1,
+        },
+      }));
+      return true;
+    }
+    return false;
   };
 
   handleUnrate = async (id) => {
-    const res = await this.mdb.deleteRating(id);
+    const res = await this.api.deleteRating(id);
     if (res.code === 13) {
       this.setState(({ rated }) => ({
         rated: {
@@ -101,65 +109,60 @@ class App extends Component {
           total: rated.total - 1,
         },
       }));
-      this.searchListRef.current.handleRefresh();
+      this.searchListRef.current.handleRefresh(id);
+      return true;
     }
+    return false;
   };
 
   render() {
     const { TabPane } = Tabs;
-    const { activeTab, error, loading, genres, rated, query } = this.state;
+    const { error, loading, genres, rated, query } = this.state;
 
-    const searchResults =
-      error || loading ? null : (
-        <div className="tabs-wrap">
-          <Tabs defaultActiveKey={appTabs.Search} onChange={this.handleTabChange} className="Tabs">
-            <TabPane tab="Search" key={appTabs.Search}>
-              <SearchField onChange={this.handleQueryChange} query={query} />
-              <section className="search-results--wrap">
-                <SearchResults
-                  tab={appTabs.Search}
-                  query={query}
-                  mdb={this.mdb}
-                  onRate={this.handleRate}
-                  onUnrate={this.handleUnrate}
-                  rated={rated}
-                  ref={this.searchListRef}
-                />
-              </section>
-            </TabPane>
+    const renderTabs = !error && !loading && (
+      <div className="tabs-wrap">
+        <Tabs defaultActiveKey={appTabs.Search} onChange={this.handleTabChange} className="Tabs">
+          <TabPane tab="Search" key={appTabs.Search}>
+            <SearchField onChange={this.handleQueryChange} query={query} />
+            <section className="results">
+              <MovieList
+                tab={appTabs.Search}
+                query={query}
+                onUpdate={this.handleUpdate}
+                onRate={this.handleRate}
+                onUnrate={this.handleUnrate}
+                rated={rated}
+                ref={this.searchListRef}
+              />
+            </section>
+          </TabPane>
 
-            <TabPane tab="Rated" key={appTabs.Rated}>
-              <section className="search-results--wrap">
-                <SearchResults
-                  tab={appTabs.Rated}
-                  query={query}
-                  mdb={this.mdb}
-                  onRate={this.handleRate}
-                  onUnrate={this.handleUnrate}
-                  rated={rated}
-                  ref={this.ratedListRef}
-                />
-              </section>
-            </TabPane>
-          </Tabs>
-        </div>
-      );
+          <TabPane tab="Rated" key={appTabs.Rated}>
+            <section className="results">
+              <MovieList
+                tab={appTabs.Rated}
+                query={query}
+                onUpdate={this.handleUpdate}
+                onRate={this.handleRate}
+                onUnrate={this.handleUnrate}
+                rated={rated}
+                ref={this.ratedListRef}
+              />
+            </section>
+          </TabPane>
+        </Tabs>
+      </div>
+    );
 
     return (
       <GenresProvider value={genres}>
         <div className="App">
           {renderError(error)}
           {renderLoad(loading, 'Стартуем приложение, загружаем данные…')}
-          {searchResults}
-
-          <p className="attribution" title={activeTab}>
-            About Movies App: &quot;This product uses the <a href="https://www.themoviedb.org/">TMDb</a> API but is not
-            endorsed or certified by TMDb.&quot;
-          </p>
+          {renderTabs}
+          <p className="attribution">{process.env.REACT_APP_ABOUT}</p>
         </div>
       </GenresProvider>
     );
   }
 }
-
-export default App;

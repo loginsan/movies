@@ -5,13 +5,12 @@ import { debounce } from 'lodash';
 import MovieCard from '../MovieCard';
 import { renderLoad, renderError, renderInfo, renderPager, ratedMessage } from '../../subrenders';
 import { appTabs } from '../../helpers';
-import TMDBService from '../../services/TMDBService';
 import { GenresConsumer } from '../../genres-context';
 
 
-class SearchResults extends Component {
+export default class MovieList extends Component {
   state = {
-    onBoarding: true,
+    isIdling: true,
     isLoading: false,
     error: false,
     founded: 0,
@@ -20,8 +19,7 @@ class SearchResults extends Component {
   };
 
   componentDidMount() {
-    const { tab, mdb } = this.props;
-    this.mdb = mdb;
+    const { tab } = this.props;
     if (tab === appTabs.Search) this.handleSearch = debounce(this.handleSearchFunc, 200);
     if (tab === appTabs.Rated) this.handleShowRated();
   }
@@ -37,15 +35,14 @@ class SearchResults extends Component {
   }
 
   handleSearchFunc = (pageNum) => {
-    const { query } = this.props;
+    const { query, onUpdate } = this.props;
     if (query.length < 2) {
       this.setStateInfo();
       return;
     }
 
     this.setStateLoading(pageNum);
-    this.mdb
-      .getMoviesPage(query, pageNum)
+    onUpdate(query, pageNum)
       .then((res) => ({ movies: res.results, founded: res.total_results }))
       .then(({ movies, founded }) => {
         const searchState = { isLoading: false, founded };
@@ -60,16 +57,21 @@ class SearchResults extends Component {
       .catch(this.handleError);
   };
 
-  handleRefresh = () => {
-    console.log('refresh');
-    const { page } = this.state;
-    this.handleSearch(page);
+  handleRefresh = (id) => {
+    const { movies } = this.state;
+    const movie = movies.find(elem => elem.id === id);
+    if (movie) {
+      movie.rating = 0;
+      this.setState({
+        movies: movies.map(elem => elem.id === id? movie : elem)
+      });
+    }
   }
 
   handleError = (err) => {
     this.setState({
       isLoading: false,
-      error: err.rated,
+      error: err.message,
       founded: 0,
     });
   };
@@ -77,19 +79,15 @@ class SearchResults extends Component {
   handleShowRated = () => {
     const { rated } = this.props;
     if (rated.total > 0) {
-      this.setState({
-        onBoarding: false,
-      });
+      this.setState({ isIdling: false });
     } else {
-      this.setState({
-        onBoarding: true,
-      });
+      this.setState({ isIdling: true });
     }
   };
 
   setStateLoading = (pageNum = 1) => {
     this.setState({
-      onBoarding: false,
+      isIdling: false,
       isLoading: true,
       error: false,
       founded: 0,
@@ -99,7 +97,7 @@ class SearchResults extends Component {
 
   setStateInfo = () => {
     this.setState({
-      onBoarding: true,
+      isIdling: true,
       isLoading: false,
       error: false,
       founded: 0,
@@ -108,7 +106,9 @@ class SearchResults extends Component {
 
   handleRate = (id, rateValue) => {
     const { onRate } = this.props;
-    return onRate(id, rateValue);
+    const { movies } = this.state;
+    const movie = movies.find(elem => elem.id === id);
+    return onRate(id, movie, rateValue);
   };
 
   handleUnrate = (id) => {
@@ -116,19 +116,33 @@ class SearchResults extends Component {
     return onUnrate(id);
   };
 
+
   render() {
     const { tab, rated } = this.props;
-    const { movies, isLoading, founded, error, page, onBoarding } = this.state;
+    const { movies, isLoading, founded, error, page, isIdling } = this.state;
+    const isSearchTab = tab === appTabs.Search;
 
-    const infoMsg = renderInfo(onBoarding, tab);
-    const errorMsg = tab === appTabs.Search ? renderError(error) : renderInfo(error, appTabs.Rated);
-    const pagerBox = founded > 0 && tab === appTabs.Search && renderPager(page, founded, this.handleSearch);
-    const ratedUndo = tab === appTabs.Rated && rated.total > 0 && ratedMessage();
+    const ratings = rated.items.reduce( (acc, cur) => { 
+      const { id, rating} = cur; 
+      acc[id] = rating;
+      return acc
+    }, [] );
+    const rmovies = movies.map(elem => {
+      const { id } = elem;
+      const relem = elem;
+      relem.rating = ratings[id] ? ratings[id] : 0;
+      return relem;
+    });
 
-    const moviesBox = !error && !isLoading && !onBoarding && (
+    const infoMsg = renderInfo(isIdling, tab);
+    const errorMsg = isSearchTab ? renderError(error) : renderInfo(error, appTabs.Rated);
+    const pagerBox = founded > 0 && isSearchTab && renderPager(page, founded, this.handleSearch);
+    const ratedUndo = !isSearchTab && rated.total > 0 && ratedMessage();
+
+    const moviesBox = !error && !isLoading && !isIdling && (
       <GenresConsumer>
         {(genres) => {
-          const moviesData = tab === appTabs.Search ? movies : rated.items;
+          const moviesData = isSearchTab ? rmovies : rated.items;
           return moviesData.map((elem) => (
             <MovieCard key={`mc${elem.id}`} movie={elem} genres={genres} onRate={this.handleRate} onUnrate={this.handleUnrate} />
           ));
@@ -151,16 +165,17 @@ class SearchResults extends Component {
   }
 }
 
-SearchResults.defaultProps = {
+MovieList.defaultProps = {
   query: '',
   tab: '1',
   onUnrate: () => {},
+  onUpdate: () => {},
 };
 
-SearchResults.propTypes = {
+MovieList.propTypes = {
   query: PropTypes.string,
-  mdb: PropTypes.instanceOf(TMDBService).isRequired,
   tab: PropTypes.string,
+  onUpdate: PropTypes.func,
   onRate: PropTypes.func.isRequired,
   onUnrate: PropTypes.func,
   rated: PropTypes.shape({
@@ -168,5 +183,3 @@ SearchResults.propTypes = {
     total: PropTypes.number
   }).isRequired
 };
-
-export default SearchResults;
