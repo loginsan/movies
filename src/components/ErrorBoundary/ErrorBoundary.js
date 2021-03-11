@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { PropTypes } from 'prop-types';
+import { Alert } from 'antd';
 
 
 export default class ErrorBoundary extends Component {
@@ -21,14 +22,7 @@ export default class ErrorBoundary extends Component {
 
     if (errorInfo) {
       return (
-        <div>
-          <h2>Something went wrong.</h2>
-          <details style={{ whiteSpace: 'pre-wrap' }}>
-            {error && error.toString()}
-            <br />
-            {errorInfo.componentStack}
-          </details>
-        </div>
+        <Alert className="alert-box" message="Ошибка" description={`${error && error.toString()}. ${errorInfo.componentStack}`} type="error" showIcon />
       );
     }
     return children;

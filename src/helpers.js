@@ -1,5 +1,5 @@
 
-export function truncate(limit) {
+function truncate(limit) {
   if (this.length <= limit) {
     return this;
   }
@@ -7,28 +7,29 @@ export function truncate(limit) {
   return `${short.substr(0, short.lastIndexOf(' '))}…`;
 }
 
-export function debounce(fn, delay) {
-  let inDebounce;
-  return function deb(...args) {
-    const context = this;
-    clearTimeout(inDebounce);
-    inDebounce = setTimeout(() => fn.apply(context, args), delay);
-  };
-}
-
-export const rateClass = (rate) => {
+const rateClass = (rate) => {
   if (rate > 7) return 'rate-top';
   if (rate > 5) return 'rate-norm';
   if (rate > 3) return 'rate-poor';
   return 'rate-low';
 }
 
-export function sessionExpired(expiredAt) {
-  const now = Date.now();
-  const exp = new Date(expiredAt);
-  return now > exp.getTime();
+const reduceRated = (rated) => {
+  const rateArray = rated.reduce((acc, cur) => {
+    const { id, rating } = cur;
+    acc[id] = rating;
+    return acc;
+  }, []);
+  return rateArray;
 }
 
-export const appTabs = {Search: '1', Rated: '2'};
+const mapMoviesRating = (movies, ratings) => 
+  movies.map((elem) => {
+    const { id } = elem;
+    const relem = elem;
+    relem.rating = ratings[id] ? ratings[id] : 0;
+    return relem;
+  })
 
-export default truncate;
+export const appTabs = {Search: '1', Rated: '2'};
+export { rateClass, reduceRated, mapMoviesRating, truncate };

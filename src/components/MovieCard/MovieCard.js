@@ -3,20 +3,34 @@ import { PropTypes } from 'prop-types';
 import { Card, Col, Rate } from 'antd';
 import { isValid, format } from 'date-fns';
 import { truncate, rateClass } from '../../helpers';
+import { GenresConsumer } from '../../genres-context';
 import './MovieCard.css';
 
 
 export default class MovieCard extends Component {
+  
+  imgRef = React.createRef();
+  
+  componentDidMount() {
+    this.loadPoster();
+  }
 
-  getGenreList = (id, genreIds) => {
-    const { genres } = this.props;
-    const uGenresIds = [...new Set(genreIds)];
-    return uGenresIds.map((gid) => {
-      const key = `g${id}-${gid}`;
-      const gobj = genres.find((elem) => elem.id === gid);
+  loadPoster = () => {
+    const { movie } = this.props;
+    const src = this.getImgPath(movie.poster_path || movie.backdrop_path);
+    const buffer = document.createElement('img');
+    buffer.onload = () => {
+      this.imgRef.current.src = src;
+    };
+    buffer.src = src;
+  }
+
+  getGenreList = (genreIds, names) =>
+    genreIds.map((gid) => {
+      const key = `g${gid}`;
+      const gobj = names.find((elem) => elem.id === gid);
       return <li key={key}>{gobj && gobj.name}</li>;
     });
-  };
 
   getImgPath = (img) => {
     const nop = './noposter.svg';
@@ -30,7 +44,7 @@ export default class MovieCard extends Component {
       title: data.title,
       lang: data.original_language,
       overview: data.overview,
-      genres: this.getGenreList(data.id, data.genre_ids),
+      genreIds: [...new Set(data.genre_ids)],
       poster: this.getImgPath(data.poster_path || data.backdrop_path),
       release: isValid(rDate) ? rDate : new Date(),
       vote: data.vote_average,
@@ -38,7 +52,7 @@ export default class MovieCard extends Component {
     };
   };
 
-  changeRate = (id, value) => {
+  rateMovie = (id, value) => {
     const { onRate } = this.props;
     onRate(id, value);
   };
@@ -52,7 +66,7 @@ export default class MovieCard extends Component {
 
   render() {
     const { movie } = this.props;
-    const { id, title, overview, genres, poster, release, vote, rating, lang } = this.readData(movie);
+    const { id, title, overview, genreIds, release, vote, rating, lang } = this.readData(movie);
     return (
       <Col span={12} xs={24} sm={12} lg={12} xl={12}>
         <Card
@@ -63,14 +77,16 @@ export default class MovieCard extends Component {
             this.deleteRate(id, rating);
           }}
         >
-          <img className="movie--poster" alt={title} title={`${id}: ${title}`} src={poster} />
+          <img className="movie--poster" ref={this.imgRef} alt={title} title={`${id}: ${title}`} src='./noposter.svg' />
           <h5 className="movie--title" title={title}>
             {title}
           </h5>
           <time className="movie--date" dateTime={release}>
             {format(release, 'LLLL d, yyy')} {`(${lang})`}
           </time>
-          <ul className="movie--genres">{genres}</ul>
+          <ul className="movie--genres">
+            <GenresConsumer>{(genres) => this.getGenreList(genreIds, genres)}</GenresConsumer>
+          </ul>
           <article className="movie--overview" title={overview}>
             <p>{truncate.call(overview, 150)}</p>
           </article>
@@ -81,30 +97,14 @@ export default class MovieCard extends Component {
               allowHalf
               value={rating}
               disabled={rating}
-              onChange={(value) => this.changeRate(id, value)}
+              onChange={(value) => this.rateMovie(id, value)}
             />
           </div>
         </Card>
       </Col>
     );
   }
-};
-
-MovieCard.defaultProps = {
-  movie: {
-    id: 0,
-    title: 'Working Title',
-    original_language: '',
-    poster_path: '',
-    backdrop_path: '',
-    release_date: new Date(),
-    genre_ids: [<li key="g0-0">noname</li>],
-    overview: 'Some overview text here',
-    vote_average: 0,
-    rating: 0,
-  },
-  genres: [],
-};
+}
 
 MovieCard.propTypes = {
   movie: PropTypes.shape({
@@ -118,8 +118,7 @@ MovieCard.propTypes = {
     overview: PropTypes.string,
     vote_average: PropTypes.number,
     rating: PropTypes.number,
-  }),
-  genres: PropTypes.arrayOf(PropTypes.object),
+  }).isRequired,
   onRate: PropTypes.func.isRequired,
   onUnrate: PropTypes.func.isRequired,
 };

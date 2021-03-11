@@ -75,7 +75,7 @@
   }
   .movie--poster {
     float: left;
-    max-width: 60px;
+    width: 60px;
     margin: 6px 0 0 10px;
   }
   .movie--rate {
@@ -154,7 +154,7 @@
     top: 12px;
   }
   .movie--poster {
-    max-width: 185px;
+    width: 185px;
     margin: 0;
   }
   .results {

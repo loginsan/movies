@@ -17,7 +17,7 @@ export const ratedMessage = () => (
 );
 
 export const renderError = (error) => error && (
-  <Message title="Что-то пошло не так…" text={error} type="error" />
+  <Message title="Что-то пошло не так…" text={error} />
 );
 
 export const renderLoad = (isLoading, tip = 'Загружаем…') => isLoading && <Spin size="large" tip={tip} />;
@@ -32,17 +32,19 @@ export const renderInfo = (flag, tab) => {
   return <Message title={ title[tab] } text={ info[tab] } type="info" />;
 };
 
-export const renderPager = (curPage, totalResults, handleChange) => (
-  <Pagination
-    onChange={handleChange}
-    current={curPage}
-    defaultPageSize={20}
-    showTitle={false}
-    showSizeChanger={false}
-    total={totalResults}
-    showTotal={(total, range) => `${range[0]}-${range[1]} из ${total} найденых`}
-  />
-);
+export const renderPager = (curPage, totalResults, handleChange) => {
+  if (totalResults === 0) return null;
+  return (
+    <Pagination
+      onChange={handleChange}
+      current={curPage}
+      defaultPageSize={20}
+      showTitle={false}
+      showSizeChanger={false}
+      total={totalResults}
+      showTotal={(total, range) => `${range[0]}-${range[1]} из ${total} найденых`}
+    />
+)};
 
 Message.defaultProps = {
   title: 'Приложение Movies',
